@@ -224,9 +224,13 @@ class CLI4RecordsPopulator:
             'installment': int(expense.get('parcela', 0)) if expense.get('parcela') else None,
             'reimbursement_number': expense.get('numRessarcimento'),
 
+            # ELECTION CONTEXT (None for Deputados records)
+            'election_date': None,
+
             # VALIDATION FLAGS
             'cnpj_validated': False,
-            'sanctions_checked': False
+            'sanctions_checked': False,
+            'external_validation_date': None
         }
 
     def _build_tse_record(self, politician_id: int, record: Dict, year: int) -> Optional[Dict]:
@@ -275,10 +279,12 @@ class CLI4RecordsPopulator:
             # ELECTION CONTEXT
             'election_year': year,
             'election_round': int(record.get('nr_turno', 1)),
+            'election_date': record.get('dt_eleicao'),
 
             # VALIDATION FLAGS
             'cnpj_validated': False,
-            'sanctions_checked': False
+            'sanctions_checked': False,
+            'external_validation_date': None
         }
 
     def _bulk_insert_records(self, records: List[Dict]) -> int:
@@ -294,7 +300,7 @@ class CLI4RecordsPopulator:
             batch = records[i:i + batch_size]
 
             try:
-                # Build bulk insert query
+                # Build bulk insert query - ALL SCHEMA FIELDS INCLUDED
                 fields = [
                     'politician_id', 'source_system', 'source_record_id', 'source_url',
                     'transaction_type', 'transaction_category', 'amount', 'amount_net',
@@ -303,7 +309,7 @@ class CLI4RecordsPopulator:
                     'state', 'municipality', 'document_number', 'document_code',
                     'document_type', 'document_type_code', 'document_url', 'lote_code',
                     'installment', 'reimbursement_number', 'election_year', 'election_round',
-                    'cnpj_validated', 'sanctions_checked'
+                    'election_date', 'cnpj_validated', 'sanctions_checked', 'external_validation_date'
                 ]
 
                 placeholders = ', '.join(['%s'] * len(fields))
@@ -331,6 +337,8 @@ class CLI4RecordsPopulator:
                             record_values.append(int(value) if value else None)
                         elif field in ['cnpj_validated', 'sanctions_checked']:
                             record_values.append(bool(value))
+                        elif field in ['transaction_date', 'election_date', 'external_validation_date']:
+                            record_values.append(value)  # Already DATE type
                         else:
                             record_values.append(value)
                     values.append(tuple(record_values))

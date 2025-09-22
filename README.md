@@ -34,6 +34,93 @@
 | 🔍 **TCU Federal Audit** | ✅ | Disqualifications, audit records, rulings |
 | ⚖️ **DataJud Judicial** | ⚠️ | Process metadata (limited public access) |
 
+
+### 🖥️ CLI4 Usage (Production Implementation)
+
+#### Financial Population Commands
+```bash
+# Complete financial population workflow (counterparts + records)
+python cli4/main.py populate-financial
+
+# Phase-specific population
+python cli4/main.py populate-financial --phase counterparts  # Phase 2a only
+python cli4/main.py populate-financial --phase records       # Phase 2b only
+python cli4/main.py populate-financial --phase all          # Both phases (default)
+
+# Targeted processing with politician IDs
+python cli4/main.py populate-financial --politician-ids 1 5 23 45
+
+# Custom date ranges for financial data
+python cli4/main.py populate-financial --start-year 2020 --end-year 2024
+python cli4/main.py populate-financial --politician-ids 1 --start-year 2022
+
+# Combination example (specific politicians, recent data)
+python cli4/main.py populate-financial --politician-ids 1 2 3 --start-year 2023 --end-year 2024
+```
+
+#### Status and Validation Commands
+```bash
+# Check database status
+python cli4/main.py status --detailed
+
+# Validate financial data quality
+python cli4/main.py validate --table financial
+python cli4/main.py validate --table financial --detailed
+python cli4/main.py validate --table financial --limit 100
+
+# Export validation results
+python cli4/main.py validate --table financial --detailed --export financial_validation.json
+```
+
+#### Expected Results
+```
+💰 FINANCIAL POPULATION WORKFLOW
+Phase 2: financial_counterparts + unified_financial_records
+==================================================
+
+📋 Processing 99 politicians
+📅 Date range: 2020 - 2024
+
+💰 Phase 2a: Financial Counterparts
+  ✅ Found 1,323 unique counterparts from Deputados
+  ✅ Total unique counterparts: 1,323
+  💾 Inserting 1,323 counterparts...
+  ✅ Counterparts phase completed: 1,223 records
+
+📊 Phase 2b: Financial Records
+  👤 [1/99] Processing politician 1
+    📄 2020: 45 expenses
+    🗳️ TSE 2020...
+    ✅ Inserted 112 financial records
+  ✅ Records phase completed: 2,920 records
+
+🏆 Financial population workflow completed!
+
+📊 FINANCIAL VALIDATION SUMMARY
+============================================================
+💰 Financial Counterparts: 100.0% (1,223 total records)
+📄 Financial Records: 98.5% (2,920 total records)
+🔗 Referential Integrity: 100.0%
+🎯 OVERALL COMPLIANCE SCORE: 99.3%
+🏆 EXCELLENT - Financial data quality
+============================================================
+```
+
+### Population Order (Critical Dependencies)
+```
+1. unified_politicians (FOUNDATION - all others depend on this)
+2. financial_counterparts (BEFORE financial_records)
+3. unified_financial_records
+4. unified_political_networks
+5. unified_wealth_tracking (BEFORE individual assets)
+6. politician_assets
+7. politician_career_history
+8. politician_events
+9. politician_professional_background
+```
+
+---
+
 ## 🚀 Quick Start
 
 ### 1. Setup
