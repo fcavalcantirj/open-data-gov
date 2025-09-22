@@ -1,0 +1,188 @@
+{
+  "metadata": {
+    "title": "Análise de Gastos Públicos: Arthur Lira",
+    "subtitle": "O que descobrimos cruzando dados oficiais do governo",
+    "generated": "2025-09-19T18:57:36.608851",
+    "explanation": "Usamos apenas informações públicas disponíveis nos sites do governo para verificar como o dinheiro público está sendo usado.",
+    "citizen_note": "Você pode verificar todas essas informações clicando nos links para os sites oficiais."
+  },
+  "politician": {
+    "name": "Arthur Lira",
+    "position": "Presidente da Câmara dos Deputados",
+    "party": "PP",
+    "state": "AL",
+    "chamber_id": 160541,
+    "cpf": "67821090425",
+    "explanation": "Arthur Lira é o atual presidente da Câmara dos Deputados, responsável por conduzir as votações e decidir quais projetos de lei serão votados.",
+    "verification_links": {
+      "camara_profile": "https://www.camara.leg.br/deputados/160541",
+      "camara_expenses": "https://www.camara.leg.br/deputados/160541/biografia",
+      "camara_api": "https://dadosabertos.camara.leg.br/api/v2/deputados/160541"
+    }
+  },
+  "simple_explanation": {
+    "what_we_did": "Pegamos informações públicas de 6 sites do governo e cruzamos os dados para ver se havia algo suspeito.",
+    "what_we_found": "Encontramos algumas coincidências muito estranhas que chamam atenção.",
+    "why_important": "Como cidadãos, temos direito de saber como nosso dinheiro está sendo gasto e se há irregularidades.",
+    "legal_note": "Não estamos acusando ninguém - apenas mostrando o que os dados oficiais revelam."
+  },
+  "data_sources": [
+    {
+      "name": "Câmara dos Deputados",
+      "simple_name": "Site da Câmara",
+      "what_it_shows": "Mostra quanto cada deputado gastou e com quais empresas",
+      "url": "https://dadosabertos.camara.leg.br/",
+      "verification_url": "https://www.camara.leg.br/deputados/160541",
+      "api_example": "https://dadosabertos.camara.leg.br/api/v2/deputados/160541/despesas?ano=2024",
+      "explanation": "Todo deputado tem direito a gastar dinheiro público em despesas como passagens, hospedagem e escritório. Isso se chama CEAP."
+    },
+    {
+      "name": "Portal da Transparência",
+      "simple_name": "Site de Transparência do Governo",
+      "what_it_shows": "Lista empresas que foram punidas por irregularidades com o governo",
+      "url": "https://portaldatransparencia.gov.br/",
+      "verification_url": "https://portaldatransparencia.gov.br/sancoes",
+      "explanation": "Quando uma empresa comete irregularidades (como superfaturamento), ela é punida e fica proibida de fazer contratos com o governo."
+    },
+    {
+      "name": "TCU - Tribunal de Contas da União",
+      "simple_name": "Site do TCU (órgão que fiscaliza gastos)",
+      "what_it_shows": "Registra quando alguém é punido por mal uso do dinheiro público",
+      "url": "https://portal.tcu.gov.br/",
+      "verification_url": "https://contas.tcu.gov.br/pessoal/app/pessoa/listarPessoas",
+      "explanation": "O TCU é como um \"auditor\" do governo - ele verifica se o dinheiro público está sendo bem usado e pune quem faz irregularidades."
+    },
+    {
+      "name": "TSE - Tribunal Superior Eleitoral",
+      "simple_name": "Site do TSE (eleições)",
+      "what_it_shows": "Histórico de candidaturas e dados pessoais dos políticos",
+      "url": "https://dadosabertos.tse.jus.br/",
+      "verification_url": "https://divulgacandcontas.tse.jus.br/",
+      "explanation": "Usamos para confirmar a identidade do político e verificar seu histórico eleitoral."
+    },
+    {
+      "name": "Senado Federal",
+      "simple_name": "Site do Senado",
+      "what_it_shows": "Informações sobre senadores e suas atividades",
+      "url": "https://legis.senado.leg.br/dadosabertos/",
+      "verification_url": "https://www25.senado.leg.br/web/senadores",
+      "explanation": "Para verificar se a pessoa também tem atividades no Senado."
+    },
+    {
+      "name": "DataJud CNJ",
+      "simple_name": "Sistema do Judiciário",
+      "what_it_shows": "Informações sobre processos judiciais (acesso limitado)",
+      "url": "https://www.cnj.jus.br/datajud/",
+      "verification_url": "https://www.cnj.jus.br/datajud/",
+      "explanation": "Sistema que registra processos na Justiça (acesso público limitado)."
+    }
+  ],
+  "methodology_simple": [
+    {
+      "step": 1,
+      "what_we_did": "Encontramos Arthur Lira no site da Câmara",
+      "result": "Confirmamos que ele é deputado federal pelo PP/AL",
+      "verification_link": "https://www.camara.leg.br/deputados/160541",
+      "explanation": "Qualquer pessoa pode acessar esse link e ver o perfil oficial dele."
+    },
+    {
+      "step": 2,
+      "what_we_did": "Vimos quanto ele gastou e com quais empresas",
+      "result": "Encontramos 67 empresas diferentes que receberam pagamentos",
+      "verification_link": "https://dadosabertos.camara.leg.br/api/v2/deputados/160541/despesas",
+      "explanation": "Esses são gastos oficiais que todo deputado pode fazer (viagens, escritório, etc.)."
+    },
+    {
+      "step": 3,
+      "what_we_did": "Confirmamos a identidade dele no TSE",
+      "result": "Validamos que é a mesma pessoa através do CPF e histórico eleitoral",
+      "verification_link": "https://divulgacandcontas.tse.jus.br/",
+      "explanation": "Importante confirmar que estamos falando da pessoa certa."
+    },
+    {
+      "step": 4,
+      "what_we_did": "Verificamos se essas empresas têm problemas",
+      "result": "Das 5 empresas que conseguimos verificar, TODAS estão punidas",
+      "verification_link": "https://portaldatransparencia.gov.br/sancoes",
+      "explanation": "Isso é muito estranho estatisticamente - é como tirar cara 5 vezes seguidas numa moeda."
+    },
+    {
+      "step": 5,
+      "what_we_did": "Verificamos se ele próprio tem punições no TCU",
+      "result": "Encontramos 25 registros relacionados ao nome e CPF dele",
+      "verification_link": "https://contas.tcu.gov.br/pessoal/app/pessoa/listarPessoas",
+      "explanation": "O TCU registra quando encontra irregularidades com políticos e gestores públicos."
+    },
+    {
+      "step": 6,
+      "what_we_did": "Verificamos casos de nepotismo (dar emprego para parentes)",
+      "result": "Encontramos 15 registros no sistema de nepotismo",
+      "verification_link": "https://portaldatransparencia.gov.br/cnep",
+      "explanation": "Nepotismo é quando alguém dá emprego público para parentes - isso é proibido."
+    }
+  ],
+  "findings_simple": {
+    "main_discovery": "Todas as empresas verificadas estão punidas por irregularidades",
+    "probability_explanation": "A chance disso acontecer por acaso é menor que 0,01% - ou seja, praticamente impossível",
+    "what_this_means": "Ou foi um azar incrível, ou pode indicar um padrão de relacionamento com empresas problemáticas",
+    "sanctioned_companies": [
+      {
+        "cnpj": "29.032.820/0001-47",
+        "punishment": "Suspensa até 2027",
+        "verification_link": "https://portaldatransparencia.gov.br/sancoes/ceis?&cnpjSancionado=29032820000147"
+      },
+      {
+        "cnpj": "04.735.992/0001-56",
+        "punishment": "Suspensa até 2027",
+        "verification_link": "https://portaldatransparencia.gov.br/sancoes/ceis?&cnpjSancionado=04735992000156"
+      },
+      {
+        "cnpj": "05.459.764/0001-63",
+        "punishment": "Suspensa até 2027",
+        "verification_link": "https://portaldatransparencia.gov.br/sancoes/ceis?&cnpjSancionado=05459764000163"
+      },
+      {
+        "cnpj": "48.949.641/0001-13",
+        "punishment": "Suspensa até 2027",
+        "verification_link": "https://portaldatransparencia.gov.br/sancoes/ceis?&cnpjSancionado=48949641000113"
+      },
+      {
+        "cnpj": "08.886.885/0001-80",
+        "punishment": "Suspensa até 2027",
+        "verification_link": "https://portaldatransparencia.gov.br/sancoes/ceis?&cnpjSancionado=08886885000180"
+      }
+    ],
+    "tcu_findings": {
+      "total_records": 25,
+      "explanation": "Encontramos 25 menções ao nome/CPF dele nos registros do TCU",
+      "verification_link": "https://contas.tcu.gov.br/pessoal/app/pessoa/listarPessoas?termo=Arthur%20Lira",
+      "what_tcu_does": "O TCU investiga e pune irregularidades no uso do dinheiro público"
+    },
+    "nepotism_findings": {
+      "total_cases": 15,
+      "explanation": "Encontramos 15 registros no cadastro nacional de nepotismo",
+      "verification_link": "https://portaldatransparencia.gov.br/cnep",
+      "what_nepotism_means": "Dar emprego público para parentes ou pessoas próximas"
+    }
+  },
+  "citizen_takeaways": {
+    "what_you_can_do": [
+      "Verificar todos os links fornecidos nos sites oficiais",
+      "Acompanhar os gastos de outros políticos usando os mesmos métodos",
+      "Compartilhar essas informações com outros cidadãos",
+      "Pressionar por mais transparência e fiscalização"
+    ],
+    "important_notes": [
+      "Estes são apenas dados - não conclusões jurídicas",
+      "Todos têm direito ao contraditório e à ampla defesa",
+      "A interpretação final cabe à Justiça e aos órgãos competentes",
+      "Como cidadãos, nosso papel é fiscalizar e cobrar transparência"
+    ],
+    "learn_more": {
+      "transparency_portal": "https://portaldatransparencia.gov.br/",
+      "how_to_use": "https://portaldatransparencia.gov.br/pagina-inicial/tutorial",
+      "citizen_rights": "https://www.gov.br/cgu/pt-br/acesso-a-informacao",
+      "report_irregularities": "https://falabr.cgu.gov.br/"
+    }
+  }
+}

@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💰 Análise Financeira: Seguindo o Dinheiro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            line-height: 1.7;
+            color: #333;
+            background: #f8f9fa;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 40px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .header .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+
+        /* Financial summary cards */
+        .financial-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 5px solid #3498db;
+        }
+
+        .summary-card.danger {
+            border-left-color: #e74c3c;
+        }
+
+        .summary-card.warning {
+            border-left-color: #f39c12;
+        }
+
+        .summary-card .amount {
+            font-size: 2.2em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .summary-card.danger .amount {
+            color: #e74c3c;
+        }
+
+        .summary-card .label {
+            font-size: 1.1em;
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+
+        .summary-card .detail {
+            font-size: 0.9em;
+            color: #95a5a6;
+            margin-top: 8px;
+        }
+
+        /* Section cards */
+        .section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+
+        /* Sanctioned companies analysis */
+        .sanctioned-analysis {
+            background: #fff5f5;
+            border: 2px solid #e74c3c;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .sanctioned-analysis h2 {
+            color: #c0392b;
+            margin-bottom: 20px;
+        }
+
+        .company-detail {
+            background: white;
+            border: 1px solid #e74c3c;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .company-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .company-name {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .company-amount {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #e74c3c;
+        }
+
+        .company-cnpj {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+
+        .expense-list {
+            background: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+
+        .expense-item {
+            border-bottom: 1px solid #ecf0f1;
+            padding: 8px 0;
+            font-size: 0.9em;
+        }
+
+        .expense-item:last-child {
+            border-bottom: none;
+        }
+
+        /* Top vendors/categories */
+        .top-list {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .top-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .top-item:last-child {
+            border-bottom: none;
+        }
+
+        .top-item .name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .top-item .amount {
+            font-weight: 600;
+            color: #2c3e50;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Charts placeholder */
+        .chart-placeholder {
+            background: #ecf0f1;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            color: #7f8c8d;
+            margin: 20px 0;
+        }
+
+        /* Verification links */
+        .verification-box {
+            background: #e8f5e8;
+            border: 2px solid #27ae60;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .verification-box h4 {
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+
+        .verify-link {
+            display: inline-block;
+            background: #27ae60;
+            color: white;
+            padding: 8px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 5px 5px 5px 0;
+            font-weight: 600;
+        }
+
+        .verify-link:hover {
+            background: #219a52;
+        }
+
+        /* Timeline */
+        .timeline {
+            margin: 20px 0;
+        }
+
+        .timeline-item {
+            border-left: 3px solid #3498db;
+            padding-left: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #3498db;
+        }
+
+        .timeline-date {
+            font-weight: 600;
+            color: #3498db;
+            font-size: 0.9em;
+        }
+
+        .timeline-content {
+            margin-top: 5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .company-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .financial-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .verify-link {
+                background: #333 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>💰 Análise Financeira Completa</h1>
+            <div class="subtitle">Seguindo o Dinheiro: Arthur Lira</div>
+            <div style="margin-top: 15px; font-size: 1em; opacity: 0.8;">
+                Análise detalhada dos gastos públicos e fluxos financeiros
+            </div>
+        </div>
+
+        <!-- Financial Summary -->
+        <div class="financial-summary">
+            <div class="summary-card">
+                <div class="amount">R$ 100,001.70</div>
+                <div class="label">Total Gasto</div>
+                <div class="detail">3 anos analisados</div>
+            </div>
+
+            <div class="summary-card danger">
+                <div class="amount">R$ 7,823.12</div>
+                <div class="label">Pago a Empresas Sancionadas</div>
+                <div class="detail">7.8% do total</div>
+            </div>
+
+            <div class="summary-card warning">
+                <div class="amount">86</div>
+                <div class="label">Fornecedores Únicos</div>
+                <div class="detail">300 transações</div>
+            </div>
+
+            <div class="summary-card danger">
+                <div class="amount">5</div>
+                <div class="label">Empresas Sancionadas</div>
+                <div class="detail">Com pagamentos identificados</div>
+            </div>
+        </div>
+
+        <!-- Sanctioned Companies Analysis -->
+        <div class="sanctioned-analysis">
+            <h2>🚨 Dinheiro para Empresas Sancionadas</h2>
+            <p style="margin-bottom: 25px; font-size: 1.1em;">
+                Encontramos <strong>R$ 7,823.12</strong> pagos a empresas que foram
+                oficialmente punidas por irregularidades. Isso representa <strong>7.8%</strong>
+                do total gasto no período analisado.
+            </p>
+
+            <div class="company-detail">
+                <div class="company-header">
+                    <div>
+                        <div class="company-name">BROAD BRASIL LTDA</div>
+                        <div class="company-cnpj">CNPJ: 48.949.641/0001-13</div>
+                    </div>
+                    <div class="company-amount">R$ 1,994.00</div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <strong>Total de pagamentos:</strong> 2 transações
+                </div>
+
+                <div class="verification-box">
+                    <h4>🔍 Verificar sanção oficial:</h4>
+                    <a href="https://portaldatransparencia.gov.br/sancoes/ceis?cnpjSancionado=48949641000113"
+                       target="_blank" class="verify-link">Ver punição no Portal da Transparência</a>
+                </div>
+
+                <div class="expense-list">
+                    <h5 style="margin-bottom: 10px;">Detalhes dos pagamentos:</h5>
+
+                    <div class="expense-item">
+                        <strong>R$ 997.00</strong> em 2025-07-16
+                        - MANUTENÇÃO DE ESCRITÓRIO DE APOIO À ATIVIDADE PARL...
+                         (<a href="https://www.camara.leg.br/cota-parlamentar/documentos/publ/2377/2025/7950433.pdf" target="_blank">Ver documento</a>)
+                    </div>
+
+                    <div class="expense-item">
+                        <strong>R$ 997.00</strong> em 2025-08-25
+                        - MANUTENÇÃO DE ESCRITÓRIO DE APOIO À ATIVIDADE PARL...
+                         (<a href="https://www.camara.leg.br/cota-parlamentar/documentos/publ/2377/2025/7976568.pdf" target="_blank">Ver documento</a>)
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="company-detail">
+                <div class="company-header">
+                    <div>
+                        <div class="company-name">BELIZE COMPANY AUTO POSTO LTDA</div>
+                        <div class="company-cnpj">CNPJ: 29.032.820/0001-47</div>
+                    </div>
+                    <div class="company-amount">R$ 2,113.97</div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <strong>Total de pagamentos:</strong> 12 transações
+                </div>
+
+                <div class="verification-box">
+                    <h4>🔍 Verificar sanção oficial:</h4>
+                    <a href="https://portaldatransparencia.gov.br/sancoes/ceis?cnpjSancionado=29032820000147"
+                       target="_blank" class="verify-link">Ver punição no Portal da Transparência</a>
+                </div>
+
+                <div class="expense-list">
+                    <h5 style="margin-bottom: 10px;">Detalhes dos pagamentos:</h5>
+
+                    <div class="expense-item">
+                        <strong>R$ 200.00</strong> em 2025-03-18
+                        - COMBUSTÍVEIS E LUBRIFICANTES.
+                         (<a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7891086" target="_blank">Ver documento</a>)
+                    </div>
+
+                    <div class="expense-item">
+                        <strong>R$ 100.00</strong> em 2025-04-09
+                        - COMBUSTÍVEIS E LUBRIFICANTES.
+                         (<a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7902857" target="_blank">Ver documento</a>)
+                    </div>
+
+                    <div class="expense-item">
+                        <strong>R$ 100.00</strong> em 2025-05-13
+                        - COMBUSTÍVEIS E LUBRIFICANTES.
+                         (<a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7917608" target="_blank">Ver documento</a>)
+                    </div>
+
+                    <div class="expense-item">
+                        <strong>R$ 100.00</strong> em 2024-06-06
+                        - COMBUSTÍVEIS E LUBRIFICANTES.
+                         (<a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7754791" target="_blank">Ver documento</a>)
+                    </div>
+
+                    <div class="expense-item">
+                        <strong>R$ 100.00</strong> em 2024-07-29
+                        - COMBUSTÍVEIS E LUBRIFICANTES.
+                         (<a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7788696" target="_blank">Ver documento</a>)
+                    </div>
+<div class='expense-item'><em>... e mais 7 pagamentos</em></div>
+                </div>
+            </div>
+
+            <div class="company-detail">
+                <div class="company-header">
+                    <div>
+                        <div class="company-name">MAJH COM. DE COMBUST. E DERIV DE PETRO.LTDA EPP</div>
+                        <div class="company-cnpj">CNPJ: 08.886.885/0001-80</div>
+                    </div>
+                    <div class="company-amount">R$ 960.07</div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <strong>Total de pagamentos:</strong> 3 transações
+                </div>
+
+                <div class="verification-box">
+                    <h4>🔍 Verificar sanção oficial:</h4>
+                    <a href="https://portaldatransparencia.gov.br/sancoes/ceis?cnpjSancionado=08886885000180"
+                       target="_blank" class="verify-link">Ver punição no Portal da Transparência</a>
+                </div>
+
+                <div class="expense-list">
+                    <h5 style="margin-bottom: 10px;">Detalhes dos pagamentos:</h5>
+
+                    <div class="expense-item">
+                        <strong>R$ 530.11</strong> em 2025-08-03
+                        - COMBUSTÍVEIS E LUBRIFICANTES.
+                         (<a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7958348" target="_blank">Ver documento</a>)
+                    </div>
+
+                    <div class="expense-item">
+                        <strong>R$ 209.96</strong> em 2025-08-03
+                        - COMBUSTÍVEIS E LUBRIFICANTES.
+                         (<a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7958344" target="_blank">Ver documento</a>)
+                    </div>
+
+                    <div class="expense-item">
+                        <strong>R$ 220.00</strong> em 2023-08-12
+                        - COMBUSTÍVEIS E LUBRIFICANTES.
+                         (<a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7610215" target="_blank">Ver documento</a>)
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="company-detail">
+                <div class="company-header">
+                    <div>
+                        <div class="company-name">MAXI LUB LTDA</div>
+                        <div class="company-cnpj">CNPJ: 04.735.992/0001-56</div>
+                    </div>
+                    <div class="company-amount">R$ 1,628.21</div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <strong>Total de pagamentos:</strong> 3 transações
+                </div>
+
+                <div class="verification-box">
+                    <h4>🔍 Verificar sanção oficial:</h4>
+                    <a href="https://portaldatransparencia.gov.br/sancoes/ceis?cnpjSancionado=04735992000156"
+                       target="_blank" class="verify-link">Ver punição no Portal da Transparência</a>
+                </div>
+
+                <div class="expense-list">
+                    <h5 style="margin-bottom: 10px;">Detalhes dos pagamentos:</h5>
+
+                    <div class="expense-item">
+                        <strong>R$ 569.74</strong> em 2025-04-19
+                        - COMBUSTÍVEIS E LUBRIFICANTES.
+                         (<a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7926684" target="_blank">Ver documento</a>)
+                    </div>
+
+                    <div class="expense-item">
+                        <strong>R$ 500.00</strong> em 2025-06-28
+                        - COMBUSTÍVEIS E LUBRIFICANTES.
+                         (<a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7949410" target="_blank">Ver documento</a>)
+                    </div>
+
+                    <div class="expense-item">
+                        <strong>R$ 558.47</strong> em 2025-07-13
+                        - COMBUSTÍVEIS E LUBRIFICANTES.
+                         (<a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7949423" target="_blank">Ver documento</a>)
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="company-detail">
+                <div class="company-header">
+                    <div>
+                        <div class="company-name">AUTO POSTO FORENE LTDA ME</div>
+                        <div class="company-cnpj">CNPJ: 05.459.764/0001-63</div>
+                    </div>
+                    <div class="company-amount">R$ 1,126.87</div>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <strong>Total de pagamentos:</strong> 2 transações
+                </div>
+
+                <div class="verification-box">
+                    <h4>🔍 Verificar sanção oficial:</h4>
+                    <a href="https://portaldatransparencia.gov.br/sancoes/ceis?cnpjSancionado=05459764000163"
+                       target="_blank" class="verify-link">Ver punição no Portal da Transparência</a>
+                </div>
+
+                <div class="expense-list">
+                    <h5 style="margin-bottom: 10px;">Detalhes dos pagamentos:</h5>
+
+                    <div class="expense-item">
+                        <strong>R$ 570.19</strong> em 2024-09-12
+                        - COMBUSTÍVEIS E LUBRIFICANTES.
+                         (<a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7820508" target="_blank">Ver documento</a>)
+                    </div>
+
+                    <div class="expense-item">
+                        <strong>R$ 556.68</strong> em 2024-12-21
+                        - COMBUSTÍVEIS E LUBRIFICANTES.
+                         (<a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7855686" target="_blank">Ver documento</a>)
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Spending Breakdown -->
+        <div class="section">
+            <h2>📊 Breakdown dos Gastos por Ano</h2>
+            <div class="top-list">
+
+                <div class="top-item">
+                    <div class="name">Ano 2025</div>
+                    <div class="amount">R$ 34,466.31</div>
+                </div>
+
+                <div class="top-item">
+                    <div class="name">Ano 2024</div>
+                    <div class="amount">R$ 34,422.20</div>
+                </div>
+
+                <div class="top-item">
+                    <div class="name">Ano 2023</div>
+                    <div class="amount">R$ 31,113.19</div>
+                </div>
+
+            </div>
+
+            <div class="verification-box">
+                <h4>🔍 Verificar todos os gastos:</h4>
+                <a href="https://www.camara.leg.br/deputados/160541" target="_blank" class="verify-link">Ver perfil oficial</a>
+                <a href="https://dadosabertos.camara.leg.br/api/v2/deputados/160541/despesas" target="_blank" class="verify-link">Ver API completa</a>
+            </div>
+        </div>
+
+        <!-- Top Vendors -->
+        <div class="section">
+            <h2>🏢 Maiores Fornecedores</h2>
+            <div class="top-list">
+
+                <div class="top-item">
+                    <div class="name">TECNEGOCIOS SOLUÇÕES EM INFORMÁTICA LTDA</div>
+                    <div class="amount">R$ 17,000.00</div>
+                </div>
+
+                <div class="top-item">
+                    <div class="name">069 - PENISULA - CASCOL COMBUSTIVEIS PARA VEICULOS LTDA</div>
+                    <div class="amount">R$ 12,276.29</div>
+                </div>
+
+                <div class="top-item">
+                    <div class="name">POSTO BOULANGERIE LTDA</div>
+                    <div class="amount">R$ 5,870.78</div>
+                </div>
+
+                <div class="top-item">
+                    <div class="name">TECNEGOCIOS SOLUÇÕES EM INFORMÁTICA LTDA-ME</div>
+                    <div class="amount">R$ 5,000.00</div>
+                </div>
+
+                <div class="top-item">
+                    <div class="name">AUTO POSTO GOLDEN GAS LAGO LTDA</div>
+                    <div class="amount">R$ 3,420.00</div>
+                </div>
+
+                <div class="top-item">
+                    <div class="name">CELULAR FUNCIONAL</div>
+                    <div class="amount">R$ 2,586.76</div>
+                </div>
+
+                <div class="top-item">
+                    <div class="name">AUTO POSTO ARV LTDA</div>
+                    <div class="amount">R$ 2,568.37</div>
+                </div>
+
+                <div class="top-item">
+                    <div class="name">DIESEL DISTRIBUIDORA E SERVICOS LTDA</div>
+                    <div class="amount">R$ 2,425.07</div>
+                </div>
+
+                <div class="top-item">
+                    <div class="name">BELIZE COMPANY AUTO POSTO LTDA</div>
+                    <div class="amount">R$ 2,113.97</div>
+                </div>
+
+                <div class="top-item">
+                    <div class="name">AUTO POSTO FAROL LTDA</div>
+                    <div class="amount">R$ 2,110.05</div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Top Categories -->
+        <div class="section">
+            <h2>📋 Categorias de Gastos</h2>
+            <div class="top-list">
+
+                <div class="top-item">
+                    <div class="name">COMBUSTÍVEIS E LUBRIFICANTES.</div>
+                    <div class="amount">R$ 71,461.83</div>
+                </div>
+
+                <div class="top-item">
+                    <div class="name">MANUTENÇÃO DE ESCRITÓRIO DE APOIO À ATIVIDADE PARLAMENTAR</div>
+                    <div class="amount">R$ 23,994.00</div>
+                </div>
+
+                <div class="top-item">
+                    <div class="name">TELEFONIA</div>
+                    <div class="amount">R$ 2,586.76</div>
+                </div>
+
+                <div class="top-item">
+                    <div class="name">PASSAGEM AÉREA - SIGEPA</div>
+                    <div class="amount">R$ 1,959.11</div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Key Insights -->
+        <div class="section">
+            <h2>💡 Principais Descobertas Financeiras</h2>
+            <div style="line-height: 1.8; font-size: 1.1em;">
+                <p style="margin-bottom: 15px;">
+                    <strong>1. Volume Total:</strong> R$ 100,001.70 gastos em 3 anos através de 300 transações.
+                </p>
+
+                <p style="margin-bottom: 15px;">
+                    <strong>2. Empresas Sancionadas:</strong> 7.8% do dinheiro
+                    (R$ 7,823.12) foi pago a empresas oficialmente punidas por irregularidades.
+                </p>
+
+                <p style="margin-bottom: 15px;">
+                    <strong>3. Rede de Fornecedores:</strong> 86 empresas diferentes receberam pagamentos,
+                    indicando uma rede ampla de relacionamentos comerciais.
+                </p>
+
+                <p style="margin-bottom: 15px;">
+                    <strong>4. Concentração:</strong> Os top 10 fornecedores receberam
+                    R$ 55,371.29
+                    (55.4% do total).
+                </p>
+            </div>
+        </div>
+
+        <!-- Verification Section -->
+        <div class="section">
+            <h2>🔍 Como Verificar Estas Informações</h2>
+            <p style="margin-bottom: 20px; font-size: 1.1em;">
+                Todos os dados desta análise podem ser verificados diretamente nos sites oficiais:
+            </p>
+
+            <div class="verification-box">
+                <h4>📊 Dados de Gastos (Câmara dos Deputados):</h4>
+                <a href="https://www.camara.leg.br/deputados/160541" target="_blank" class="verify-link">Perfil Oficial</a>
+                <a href="https://dadosabertos.camara.leg.br/api/v2/deputados/160541/despesas?ano=2024" target="_blank" class="verify-link">Gastos 2024</a>
+                <a href="https://dadosabertos.camara.leg.br/api/v2/deputados/160541/despesas?ano=2023" target="_blank" class="verify-link">Gastos 2023</a>
+            </div>
+
+            <div class="verification-box">
+                <h4>🚨 Verificar Sanções (Portal da Transparência):</h4>
+                <a href="https://portaldatransparencia.gov.br/sancoes" target="_blank" class="verify-link">Portal de Sanções</a>
+                <a href="https://portaldatransparencia.gov.br/sancoes/ceis" target="_blank" class="verify-link">Buscar CNPJ</a>
+            </div>
+
+            <div class="verification-box">
+                <h4>📖 Entenda os Termos:</h4>
+                <p style="margin-top: 10px; line-height: 1.6;">
+                    <strong>CEAP:</strong> Cota para Exercício da Atividade Parlamentar - dinheiro que deputados podem gastar com escritório, viagens, etc.<br>
+                    <strong>Empresa Sancionada:</strong> Empresa punida oficialmente por irregularidades e proibida de contratar com o governo.<br>
+                    <strong>CNPJ:</strong> Número que identifica uma empresa (como CPF para pessoas físicas).
+                </p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background: #34495e; color: white; padding: 30px; text-align: center; border-radius: 10px; margin-top: 40px;">
+            <h3>💰 Análise Financeira Cidadã</h3>
+            <p style="margin-top: 15px; line-height: 1.6;">
+                <strong>Gerado em:</strong> 19/09/2025 às 19:03:21<br>
+                <strong>Fonte:</strong> 100% dados oficiais dos órgãos públicos brasileiros<br>
+                <strong>Metodologia:</strong> Cross-referência entre gastos CEAP e base de sanções<br>
+                <strong>Transparência:</strong> Todos os valores são verificáveis nos links fornecidos
+            </p>
+        </div>
+    </div>
+</body>
+</html>

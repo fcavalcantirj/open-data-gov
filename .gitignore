@@ -1,0 +1,123 @@
+# =====================================
+# BRAZILIAN POLITICAL DATA PROJECT
+# =====================================
+
+# Environment and secrets
+.env
+*.env
+.env.local
+.env.production
+
+# API Keys and sensitive data
+*_key.txt
+*_credentials.json
+api_keys/
+secrets/
+
+# Test results with potentially sensitive data
+*_test_*.json
+discovery_results_*.json
+*_integration_test_*.json
+portal_transparencia_test_*.json
+tcu_integration_test_*.json
+temporal_analysis_*.json
+
+# Data files
+data/
+raw_data/
+processed_data/
+*.csv
+*.xlsx
+*.json.bak
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Cache
+.cache/
+*.cache
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Documentation builds
+docs/_build/
+site/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Configuration overrides
+config.local.*
+settings.local.*
+
+# Large data files
+*.zip
+*.tar.gz
+*.rar
+
+# API response caches
+cache/
+responses/

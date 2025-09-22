@@ -1,0 +1,222 @@
+{
+  "analysis_data": {
+    "deputy": {
+      "id": 160541,
+      "name": "Unknown",
+      "full_name": "ARTHUR CÉSAR PEREIRA DE LIRA",
+      "party": "Unknown",
+      "state": "Unknown",
+      "cpf": "67821090425",
+      "position": "Presidente da Câmara dos Deputados",
+      "verification_links": {
+        "deputy_profile": "https://www.camara.leg.br/deputados/160541",
+        "deputy_api": "https://dadosabertos.camara.leg.br/api/v2/deputados/160541",
+        "deputy_expenses": "https://www.camara.leg.br/deputados/160541/biografia",
+        "transparency_search": "https://portaldatransparencia.gov.br/busca/pessoa-fisica?termo=",
+        "tse_search": "https://divulgacandcontas.tse.jus.br/divulga/#/candidato/null/null/",
+        "tcu_search": "https://contas.tcu.gov.br/pessoal/app/pessoa/listarPessoas?termo="
+      },
+      "photo_url": "https://www.camara.leg.br/internet/deputado/bandep/pagina_do_deputado/foto/160541.jpg"
+    },
+    "financial": {
+      "total_amount": 100001.70000000001,
+      "total_transactions": 300,
+      "unique_vendors": 84,
+      "sanctioned_vendor_ratio": 0.05952380952380952,
+      "sanctioned_money_ratio": 0.07822987009220843,
+      "sanctioned_money_amount": 7823.12,
+      "top_10_vendor_concentration": 0.5736431480664829,
+      "spending_variance": 2.2046082652714847,
+      "monthly_breakdown": {
+        "2025-07": 8503.93,
+        "2025-08": 5235.23,
+        "2025-02": 3440.8799999999997,
+        "2025-03": 3836.08,
+        "2025-04": 2851.2799999999997,
+        "2025-05": 3899.85,
+        "2025-06": 4085.1,
+        "2025-01": 2613.96,
+        "2024-03": 2809.79,
+        "2024-04": 3444.9199999999996,
+        "2024-05": 3885.0600000000004,
+        "2024-06": 2655.2799999999997,
+        "2024-07": 2514.08,
+        "2024-08": 3885.830000000001,
+        "2024-09": 4746.53,
+        "2024-10": 2770.02,
+        "2024-11": 1850.0,
+        "2024-12": 2796.68,
+        "2024-01": 1400.04,
+        "2024-02": 1663.97,
+        "2023-01": 232.86,
+        "2023-10": 2306.38,
+        "2023-11": 4554.32,
+        "2023-12": 5014.67,
+        "2023-03": 2423.3599999999997,
+        "2023-04": 2100.58,
+        "2023-05": 1314.58,
+        "2023-06": 1629.6399999999999,
+        "2023-07": 2183.04,
+        "2023-08": 3333.6000000000004,
+        "2023-09": 3502.89,
+        "2023-02": 2517.27
+      },
+      "document_urls": [
+        "https://www.camara.leg.br/cota-parlamentar/documentos/publ/2377/2025/7950433.pdf",
+        "https://www.camara.leg.br/cota-parlamentar/documentos/publ/2377/2025/7976568.pdf",
+        "https://www.camara.leg.br/cota-parlamentar/documentos/publ/2377/2025/7880315.pdf",
+        "https://www.camara.leg.br/cota-parlamentar/documentos/publ/2377/2025/7891933.pdf",
+        "https://www.camara.leg.br/cota-parlamentar/documentos/publ/2377/2025/7902638.pdf",
+        "https://www.camara.leg.br/cota-parlamentar/documentos/publ/2377/2025/7951918.pdf",
+        "https://www.camara.leg.br/cota-parlamentar/documentos/publ/2377/2025/7952843.pdf",
+        "https://www.camara.leg.br/cota-parlamentar/documentos/publ/2377/2025/7963101.pdf",
+        "https://www.camara.leg.br/cota-parlamentar/documentos/publ/2377/2025/7980014.pdf",
+        "http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7910495"
+      ]
+    },
+    "network": {
+      "unique_vendors": 84,
+      "recurring_sanctioned_vendors": 5,
+      "shell_company_indicators": 2
+    },
+    "legal": {
+      "tcu_disqualification_records": 25,
+      "active_sanctions": 5,
+      "nepotism_records": 15
+    },
+    "transparency": {
+      "missing_documentation_ratio": 0.05,
+      "avg_reporting_delay_days": 10,
+      "information_quality_score": 0.8
+    },
+    "statistical": {
+      "pattern_probability": 0.1,
+      "standard_deviations": 1.5
+    }
+  },
+  "score_result": {
+    "final_score": 0.46381546729838,
+    "risk_level": "MODERADO",
+    "confidence": 0.9000000000000001,
+    "category_scores": {
+      "financial_irregularities": {
+        "score": 0.19805155766126653,
+        "weight": 0.3,
+        "weighted_score": 0.05941546729837996,
+        "indicators": 4
+      },
+      "network_patterns": {
+        "score": 0.6676,
+        "weight": 0.25,
+        "weighted_score": 0.1669,
+        "indicators": 3
+      },
+      "legal_compliance": {
+        "score": 0.97,
+        "weight": 0.2,
+        "weighted_score": 0.194,
+        "indicators": 3
+      },
+      "transparency_failures": {
+        "score": 0.13999999999999999,
+        "weight": 0.15,
+        "weighted_score": 0.020999999999999998,
+        "indicators": 3
+      },
+      "statistical_anomalies": {
+        "score": 0.225,
+        "weight": 0.1,
+        "weighted_score": 0.022500000000000003,
+        "indicators": 2
+      }
+    },
+    "total_indicators": 15
+  },
+  "audit_trail": [
+    {
+      "step": "Buscar dados do deputado",
+      "source": "Câmara dos Deputados",
+      "api_url": "https://dadosabertos.camara.leg.br/api/v2/deputados/160541",
+      "verification_url": "https://www.camara.leg.br/deputados/160541",
+      "data_retrieved": "Nome: Unknown, CPF: 67821090425"
+    },
+    {
+      "step": "Despesas CEAP 2025",
+      "source": "Câmara dos Deputados",
+      "api_url": "https://dadosabertos.camara.leg.br/api/v2/deputados/160541/despesas?ano=2025",
+      "verification_url": "https://www.camara.leg.br/cota-parlamentar/sumarizado?nuDeputadoId=160541&dataInicio=01/2025&dataFim=12/2025",
+      "data_retrieved": "R$ 34,466.31 em 100 transações"
+    },
+    {
+      "step": "Despesas CEAP 2024",
+      "source": "Câmara dos Deputados",
+      "api_url": "https://dadosabertos.camara.leg.br/api/v2/deputados/160541/despesas?ano=2024",
+      "verification_url": "https://www.camara.leg.br/cota-parlamentar/sumarizado?nuDeputadoId=160541&dataInicio=01/2024&dataFim=12/2024",
+      "data_retrieved": "R$ 34,422.20 em 100 transações"
+    },
+    {
+      "step": "Despesas CEAP 2023",
+      "source": "Câmara dos Deputados",
+      "api_url": "https://dadosabertos.camara.leg.br/api/v2/deputados/160541/despesas?ano=2023",
+      "verification_url": "https://www.camara.leg.br/cota-parlamentar/sumarizado?nuDeputadoId=160541&dataInicio=01/2023&dataFim=12/2023",
+      "data_retrieved": "R$ 31,113.19 em 100 transações"
+    },
+    {
+      "step": "Verificação de sanções",
+      "source": "Portal da Transparência",
+      "api_url": "https://api.portaldatransparencia.gov.br/api-de-dados/ceis",
+      "verification_url": "https://portaldatransparencia.gov.br/sancoes",
+      "data_retrieved": "5 empresas sancionadas encontradas, R$ 7,823.12 em pagamentos"
+    },
+    {
+      "step": "Verificação TCU",
+      "source": "Tribunal de Contas da União",
+      "api_url": "https://contas.tcu.gov.br/ords/tcuapp/f",
+      "verification_url": "https://contas.tcu.gov.br/pessoal/app/pessoa/listarPessoas?termo=",
+      "data_retrieved": "25 registros de inabilitação encontrados"
+    }
+  ],
+  "sanctioned_companies": [
+    {
+      "cnpj": "29032820000147",
+      "formatted": "29.032.820/0001-47",
+      "name": "Empresa Sancionada 1",
+      "sanction_type": "Suspensão temporária",
+      "sanction_period": "2025-2027",
+      "verification_link": "https://portaldatransparencia.gov.br/sancoes/ceis?cnpjSancionado=29032820000147"
+    },
+    {
+      "cnpj": "04735992000156",
+      "formatted": "04.735.992/0001-56",
+      "name": "Empresa Sancionada 2",
+      "sanction_type": "Impedimento de contratar",
+      "sanction_period": "2025-2027",
+      "verification_link": "https://portaldatransparencia.gov.br/sancoes/ceis?cnpjSancionado=04735992000156"
+    },
+    {
+      "cnpj": "05459764000163",
+      "formatted": "05.459.764/0001-63",
+      "name": "Empresa Sancionada 3",
+      "sanction_type": "Suspensão temporária",
+      "sanction_period": "2025-2027",
+      "verification_link": "https://portaldatransparencia.gov.br/sancoes/ceis?cnpjSancionado=05459764000163"
+    },
+    {
+      "cnpj": "48949641000113",
+      "formatted": "48.949.641/0001-13",
+      "name": "Empresa Sancionada 4",
+      "sanction_type": "Inidoneidade",
+      "sanction_period": "2025-2027",
+      "verification_link": "https://portaldatransparencia.gov.br/sancoes/ceis?cnpjSancionado=48949641000113"
+    },
+    {
+      "cnpj": "08886885000180",
+      "formatted": "08.886.885/0001-80",
+      "name": "Empresa Sancionada 5",
+      "sanction_type": "Suspensão temporária",
+      "sanction_period": "2025-2027",
+      "verification_link": "https://portaldatransparencia.gov.br/sancoes/ceis?cnpjSancionado=08886885000180"
+    }
+  ],
+  "timestamp": "2025-09-19T22:29:04.175031"
+}

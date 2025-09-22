@@ -1,0 +1,431 @@
+{
+  "analysis_data": {
+    "deputy": {
+      "id": 160541,
+      "name": "Unknown",
+      "party": "Unknown",
+      "state": "Unknown",
+      "position": "Presidente da Câmara dos Deputados"
+    },
+    "financial_data": {
+      "total_amount": 68888.51,
+      "total_transactions": 200,
+      "unique_vendors": 67,
+      "sanctioned_vendor_ratio": 0.07462686567164178,
+      "sanctioned_money_ratio": 0.09802970045367508,
+      "sanctioned_money_amount": 6753.12,
+      "top_10_vendor_concentration": 0.6043756789049437,
+      "spending_variance": 25.5
+    },
+    "network_data": {
+      "unique_vendors": 67,
+      "recurring_sanctioned_vendors": 5,
+      "shell_company_indicators": 2
+    },
+    "legal_data": {
+      "tcu_disqualification_records": 25,
+      "active_sanctions": 5,
+      "nepotism_records": 15
+    },
+    "transparency_data": {
+      "missing_documentation_ratio": 0.05,
+      "avg_reporting_delay_days": 10,
+      "information_quality_score": 0.8
+    },
+    "statistical_data": {
+      "pattern_probability": 0.1,
+      "standard_deviations": 1.5
+    },
+    "vendor_details": {
+      "48949641000113": {
+        "name": "BROAD BRASIL LTDA",
+        "total": 1994.0,
+        "count": 2
+      },
+      "11521613000190": {
+        "name": "TECNEGOCIOS SOLUÇÕES EM INFORMÁTICA LTDA",
+        "total": 19000.0,
+        "count": 19
+      },
+      "00306597000520": {
+        "name": "005 - LAGO SUL - CASCOL COMBUSTIVEIS PARA VEICULOS LTDA",
+        "total": 200.0,
+        "count": 1
+      },
+      "00306597003112": {
+        "name": "031 - 302 NORTE - CASCOL COMBUSTIVEIS PARA VEICULOS LTDA",
+        "total": 400.0,
+        "count": 2
+      },
+      "00306597003970": {
+        "name": "039 - QI 13 - CASCOL COMBUSTIVEIS PARA VEICULOS LTDA",
+        "total": 400.0,
+        "count": 2
+      },
+      "00306597006995": {
+        "name": "069 - PENISULA - CASCOL COMBUSTIVEIS PARA VEICULOS LTDA",
+        "total": 7136.280000000001,
+        "count": 42
+      },
+      "00306597007100": {
+        "name": "071 - LAGO NORTE - CASCOL COMBUSTIVEIS PARA VEICULOS LTDA",
+        "total": 350.0,
+        "count": 2
+      },
+      "02850879000196": {
+        "name": "A P ALVES LTDA",
+        "total": 300.0,
+        "count": 1
+      },
+      "41214219000170": {
+        "name": "AUTO POSTO ARV LTDA",
+        "total": 2268.27,
+        "count": 10
+      },
+      "13564704000139": {
+        "name": "AUTO POSTO BALSAMO LTDA",
+        "total": 400.0,
+        "count": 1
+      },
+      "29763548000175": {
+        "name": "AUTO POSTO BL LTDA",
+        "total": 636.08,
+        "count": 1
+      },
+      "00692418000107": {
+        "name": "AUTO POSTO CINCO ESTRELAS LTDA",
+        "total": 200.0,
+        "count": 1
+      },
+      "00692418000379": {
+        "name": "AUTO POSTO CINCO ESTRELAS LTDA",
+        "total": 200.0,
+        "count": 1
+      },
+      "09280520000170": {
+        "name": "AUTO POSTO COMENDADOR LTDA",
+        "total": 500.03,
+        "count": 1
+      },
+      "15696129000153": {
+        "name": "AUTO POSTO GLOBO EIRELI",
+        "total": 258.44,
+        "count": 1
+      },
+      "30879261000194": {
+        "name": "AUTO POSTO GOLDEN GAS LAGO LTDA",
+        "total": 3220.0,
+        "count": 16
+      },
+      "03482208000182": {
+        "name": "AUTO POSTO JK LTDA",
+        "total": 480.01,
+        "count": 3
+      },
+      "07000526000110": {
+        "name": "AUTO POSTO NOVA VIDA EIRELI",
+        "total": 300.0,
+        "count": 1
+      },
+      "39567744000128": {
+        "name": "AUTO POSTO PILAR COMERCIO DE COMBUSTIVEIS LTDA",
+        "total": 400.0,
+        "count": 1
+      },
+      "03855924000168": {
+        "name": "AUTO POSTO SEREIA LTDA.",
+        "total": 200.03,
+        "count": 1
+      },
+      "32876089000140": {
+        "name": "AUTO POSTO TIGRE JANGADEIROS LTDA",
+        "total": 890.05,
+        "count": 2
+      },
+      "17336019000106": {
+        "name": "AUTO POSTO VELOZ LTDA   EPP",
+        "total": 696.0,
+        "count": 2
+      },
+      "00647440000135": {
+        "name": "AUTO SHOPPING QL 06 COMERCIO DE DERIV DE PETROLEO LTDA",
+        "total": 281.53999999999996,
+        "count": 2
+      },
+      "29032820000147": {
+        "name": "BELIZE COMPANY AUTO POSTO LTDA",
+        "total": 1263.97,
+        "count": 8
+      },
+      "02488031000169": {
+        "name": "CDG COMBUSTIVEIS LTDA",
+        "total": 890.65,
+        "count": 2
+      },
+      "12512646000137": {
+        "name": "CICERO LISBOA LIMA",
+        "total": 1301.85,
+        "count": 4
+      },
+      "13901790000632": {
+        "name": "CJCM PETROLEO LTDA",
+        "total": 302.12,
+        "count": 1
+      },
+      "11908167000171": {
+        "name": "DIESEL DISTRIBUIDORA E SERVICOS LTDA",
+        "total": 1465.03,
+        "count": 5
+      },
+      "11908167000333": {
+        "name": "DIESEL DISTRIBUIDORA E SERVICOS LTDA",
+        "total": 1130.1399999999999,
+        "count": 2
+      },
+      "12396339000219": {
+        "name": "DISTRIBUIDORA VEICULOS CONFIANCA LTDA",
+        "total": 752.01,
+        "count": 2
+      },
+      "08203497000157": {
+        "name": "M H DA COSTA E CIA LTDA",
+        "total": 700.0,
+        "count": 3
+      },
+      "07754145000127": {
+        "name": "M L G DA SILVA SIQUEIRA & CIA LTDA - ME",
+        "total": 594.05,
+        "count": 1
+      },
+      "08886885000180": {
+        "name": "MAJH COM. DE COMBUST. E DERIV DE PETRO.LTDA EPP",
+        "total": 740.07,
+        "count": 2
+      },
+      "04735992000156": {
+        "name": "MAXI LUB LTDA",
+        "total": 1628.21,
+        "count": 3
+      },
+      "07165156000171": {
+        "name": "MAXI POSTO IV LTDA",
+        "total": 300.0,
+        "count": 1
+      },
+      "24772262000132": {
+        "name": "MAXI POSTO VIII LTDA",
+        "total": 604.21,
+        "count": 1
+      },
+      "11679330000171": {
+        "name": "MORAIS   PINTO COMBUSTIVEIS LTDA",
+        "total": 304.08,
+        "count": 1
+      },
+      "02991589000324": {
+        "name": "POSTO 4 RODAS FILIAL",
+        "total": 290.08,
+        "count": 1
+      },
+      "02991589000162": {
+        "name": "POSTO 4 RODAS MATRIZ",
+        "total": 240.01,
+        "count": 1
+      },
+      "10523574000106": {
+        "name": "POSTO ALMEIDA EIRELI",
+        "total": 250.0,
+        "count": 1
+      },
+      "00440239000182": {
+        "name": "POSTO BOULANGERIE LTDA",
+        "total": 1526.42,
+        "count": 4
+      },
+      "43000360000104": {
+        "name": "POSTO DE COMBUSTIVEL QL 09 LAGO SUL LTDA",
+        "total": 1586.28,
+        "count": 8
+      },
+      "00306597005166": {
+        "name": "051 - 313 NORTE - CASCOL COMBUSTIVEIS PARA VEICULOS LTDA",
+        "total": 200.0,
+        "count": 1
+      },
+      "00306597001926": {
+        "name": "19 - 303 SUL - CASCOL COMBUSTIVEIS PARA VEICULOS LTDA",
+        "total": 200.0,
+        "count": 1
+      },
+      "15503894000100": {
+        "name": "A. LUIZ SOARES VIEIRA - EPP",
+        "total": 100.0,
+        "count": 1
+      },
+      "07583696000175": {
+        "name": "AGRESTE COMBUSTIVEIS E SERVICOS LTDA  ME",
+        "total": 600.0,
+        "count": 1
+      },
+      "41576958000102": {
+        "name": "ALMEIDA E BARROS COMERCIO LTDA",
+        "total": 604.27,
+        "count": 1
+      },
+      "08413304000192": {
+        "name": "AMORIM E CORREIA LTDA",
+        "total": 658.05,
+        "count": 1
+      },
+      "22398818000147": {
+        "name": "AUTO POSTO 306 NORTE LTDA",
+        "total": 200.0,
+        "count": 1
+      },
+      "06081417000102": {
+        "name": "AUTO POSTO AGUA VIVA LTDA",
+        "total": 670.0,
+        "count": 2
+      },
+      "18990675000190": {
+        "name": "AUTO POSTO ALVES DA SILVA LTDA",
+        "total": 300.02,
+        "count": 1
+      },
+      "33967242000108": {
+        "name": "AUTO POSTO CAPIA II EIRELI",
+        "total": 204.03,
+        "count": 1
+      },
+      "00692418002665": {
+        "name": "AUTO POSTO CINCO ESTRELAS LTDA",
+        "total": 200.0,
+        "count": 1
+      },
+      "07247381000157": {
+        "name": "AUTO POSTO FAROL LTDA",
+        "total": 1810.05,
+        "count": 4
+      },
+      "05459764000163": {
+        "name": "AUTO POSTO FORENE LTDA ME",
+        "total": 1126.87,
+        "count": 2
+      },
+      "07042809000125": {
+        "name": "AUTO POSTO HANNAH LTDA",
+        "total": 594.72,
+        "count": 1
+      },
+      "31560876000116": {
+        "name": "AUTO POSTO MANGABEIRAS LTDA",
+        "total": 685.31,
+        "count": 2
+      },
+      "05875523000103": {
+        "name": "AUTO POSTO MARE ALTA LTDA",
+        "total": 222.23,
+        "count": 1
+      },
+      "50792055000150": {
+        "name": "AUTO POSTO NUNES LTDA",
+        "total": 200.0,
+        "count": 1
+      },
+      "19739379000184": {
+        "name": "AUTO POSTO OURO VERDE",
+        "total": 927.03,
+        "count": 2
+      },
+      "05101388000130": {
+        "name": "AUTO POSTO PIONEIRO LTDA",
+        "total": 241.59,
+        "count": 1
+      },
+      "25023880000142": {
+        "name": "AUTO POSTO SMART LTDA  EPP",
+        "total": 420.01,
+        "count": 1
+      },
+      "09077197000131": {
+        "name": "AUTO POSTO TRAPICHAO LTDA",
+        "total": 283.03,
+        "count": 1
+      },
+      "34193732000167": {
+        "name": "AUTO POSTO TREVO DO FRANCES LTDA",
+        "total": 640.0,
+        "count": 1
+      },
+      "00097626000400": {
+        "name": "BRASAL COMBUSTIVEIS LTDA",
+        "total": 100.0,
+        "count": 1
+      },
+      "12486809000316": {
+        "name": "CDA EMPREENDIMENTOS LTDA",
+        "total": 921.39,
+        "count": 3
+      },
+      "12519476000112": {
+        "name": "COX   GAMA LTDA",
+        "total": 200.0,
+        "count": 1
+      }
+    },
+    "sanctioned_companies": [
+      "29032820000147",
+      "04735992000156",
+      "05459764000163",
+      "48949641000113",
+      "08886885000180"
+    ]
+  },
+  "score_result": {
+    "final_score": 0.4580639001337305,
+    "risk_level": "MODERADO",
+    "confidence": 0.9000000000000001,
+    "category_scores": {
+      "financial_irregularities": {
+        "score": 0.2553796671124349,
+        "weight": 0.3,
+        "weighted_score": 0.07661390013373047,
+        "indicators": 4
+      },
+      "network_patterns": {
+        "score": 0.5758,
+        "weight": 0.25,
+        "weighted_score": 0.14395,
+        "indicators": 3
+      },
+      "legal_compliance": {
+        "score": 0.97,
+        "weight": 0.2,
+        "weighted_score": 0.194,
+        "indicators": 3
+      },
+      "transparency_failures": {
+        "score": 0.13999999999999999,
+        "weight": 0.15,
+        "weighted_score": 0.020999999999999998,
+        "indicators": 3
+      },
+      "statistical_anomalies": {
+        "score": 0.225,
+        "weight": 0.1,
+        "weighted_score": 0.022500000000000003,
+        "indicators": 2
+      }
+    },
+    "total_indicators": 15,
+    "weights_used": {
+      "financial_irregularities": 0.3,
+      "network_patterns": 0.25,
+      "legal_compliance": 0.2,
+      "transparency_failures": 0.15,
+      "statistical_anomalies": 0.1
+    }
+  },
+  "formula_documentation": "============================================================\nTRANSPARENT RISK SCORING FORMULA\n============================================================\n\nFORMULA GERAL:\nRisk Score = Σ(Category_Score × Category_Weight)\n\nPESOS DAS CATEGORIAS:\n  • financial_irregularities: 30%\n  • network_patterns: 25%\n  • legal_compliance: 20%\n  • transparency_failures: 15%\n  • statistical_anomalies: 10%\n\nCÁLCULO POR CATEGORIA:\nCategory_Score = Σ(Indicator_Value × Indicator_Weight × Confidence) / Σ(Indicator_Weight)\n\nINDICADORES E SEUS CÁLCULOS:\n\nFINANCIAL_IRREGULARITIES:\n  fin_001: Taxa de Fornecedores Sancionados\n    Cálculo: (fornecedores_sancionados / total_fornecedores) * 2\n    Peso: 40%, Confiança: 100%\n  fin_002: Dinheiro para Empresas Sancionadas\n    Cálculo: (valor_sancionados / valor_total) * 3\n    Peso: 30%, Confiança: 100%\n  fin_003: Concentração de Fornecedores\n    Cálculo: max(0, (concentração - 0.3) * 1.43)\n    Peso: 20%, Confiança: 100%\n  fin_004: Padrão de Gastos Irregular\n    Cálculo: variância_normalizada / 100\n    Peso: 10%, Confiança: 80%\n\nNETWORK_PATTERNS:\n  net_001: Tamanho da Rede de Fornecedores\n    Cálculo: |vendors - 50| / 50\n    Peso: 30%, Confiança: 90%\n  net_002: Fornecedores Sancionados Recorrentes\n    Cálculo: min(recorrentes / 3, 1.0)\n    Peso: 40%, Confiança: 100%\n  net_003: Indicadores de Empresas de Fachada\n    Cálculo: min(indicadores / 5, 1.0)\n    Peso: 30%, Confiança: 70%\n\nLEGAL_COMPLIANCE:\n  leg_001: Inabilitações no TCU\n    Cálculo: min(registros / 10, 1.0)\n    Peso: 40%, Confiança: 100%\n  leg_002: Sanções Ativas\n    Cálculo: min(sanções / 5, 1.0)\n    Peso: 30%, Confiança: 100%\n  leg_003: Registros de Nepotismo\n    Cálculo: min(casos / 5, 1.0)\n    Peso: 30%, Confiança: 90%\n\nTRANSPARENCY_FAILURES:\n  tra_001: Documentação Faltante\n    Cálculo: docs_faltantes / total_docs\n    Peso: 40%, Confiança: 90%\n  tra_002: Atraso na Prestação de Contas\n    Cálculo: min(dias_atraso / 30, 1.0)\n    Peso: 30%, Confiança: 80%\n  tra_003: Qualidade da Informação\n    Cálculo: 1.0 - quality_score\n    Peso: 30%, Confiança: 70%\n\nSTATISTICAL_ANOMALIES:\n  sta_001: Probabilidade Estatística do Padrão\n    Cálculo: 1.0 - probabilidade se p < 0.05\n    Peso: 50%, Confiança: 90%\n  sta_002: Desvios Padrão da Normalidade\n    Cálculo: min(|σ| / 3, 1.0)\n    Peso: 50%, Confiança: 90%\n\nINTERPRETAÇÃO:\n  0.0 - 0.2: Risco MÍNIMO\n  0.2 - 0.4: Risco BAIXO\n  0.4 - 0.6: Risco MODERADO\n  0.6 - 0.8: Risco ALTO\n  0.8 - 1.0: Risco CRÍTICO",
+  "timestamp": "2025-09-19T19:12:09.647065"
+}

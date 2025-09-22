@@ -1,0 +1,73 @@
+# =====================================
+# BRAZILIAN POLITICAL DATA INTEGRATION
+# Core Dependencies
+# =====================================
+
+# HTTP requests and API integration
+requests>=2.31.0
+urllib3>=2.0.0
+
+# Environment configuration
+python-dotenv>=1.0.0
+
+# Data processing
+pandas>=2.0.0
+numpy>=1.24.0
+
+# Date and time handling
+python-dateutil>=2.8.0
+
+# JSON and data serialization
+orjson>=3.9.0
+
+# XML processing (for Senado Federal)
+lxml>=4.9.0
+beautifulsoup4>=4.12.0
+
+# Text processing and normalization
+unidecode>=1.3.0
+regex>=2023.0.0
+
+# Statistical analysis
+scipy>=1.10.0
+scikit-learn>=1.3.0
+
+# Network analysis (future implementation)
+networkx>=3.1.0
+
+# Data validation
+pydantic>=2.0.0
+
+# Logging and monitoring
+structlog>=23.1.0
+
+# Development and testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+black>=23.0.0
+flake8>=6.0.0
+
+# Documentation
+sphinx>=7.0.0
+sphinx-rtd-theme>=1.3.0
+
+# Optional: Jupyter for data exploration
+jupyter>=1.0.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Optional: Database connections (future phases)
+# neo4j>=5.11.0
+# psycopg2-binary>=2.9.0
+# sqlalchemy>=2.0.0
+
+# =====================================
+# Installation Notes:
+# =====================================
+# pip install -r requirements.txt
+#
+# For development:
+# pip install -r requirements.txt pytest black flake8
+#
+# For data analysis:
+# pip install -r requirements.txt jupyter matplotlib seaborn

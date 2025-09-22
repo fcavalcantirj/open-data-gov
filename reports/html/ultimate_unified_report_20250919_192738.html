@@ -1,0 +1,1805 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise Completa: Unknown - Sistema Transparente</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.7;
+            color: #212121;
+            background: #fafafa;
+            font-size: 16px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header with comprehensive info */
+        .header-complete {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+        }
+
+        .header-grid {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .deputy-photo {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid white;
+            background: white;
+            object-fit: cover;
+        }
+
+        .deputy-info h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .deputy-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 0.95em;
+        }
+
+        .detail-item strong {
+            margin-right: 8px;
+        }
+
+        /* Score display enhanced */
+        .score-display-enhanced {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            min-width: 200px;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .score-svg {
+            transform: rotate(-90deg);
+        }
+
+        .score-background {
+            fill: none;
+            stroke: #e0e0e0;
+            stroke-width: 10;
+        }
+
+        .score-progress {
+            fill: none;
+            stroke-width: 10;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+        }
+
+        .score-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .risk-label {
+            font-size: 1.3em;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        /* Verification links enhanced */
+        .verification-ribbon {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 30px 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .verification-ribbon h4 {
+            color: #2e7d32;
+            margin-right: 20px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .verify-btn {
+            display: inline-flex;
+            align-items: center;
+            background: #4caf50;
+            color: white;
+            padding: 8px 16px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .verify-btn:hover {
+            background: #388e3c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76,175,80,0.4);
+        }
+
+        .verify-btn svg {
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+        }
+
+        /* Methodology card enhanced */
+        .methodology-card {
+            background: white;
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .methodology-card h2 {
+            color: #1e3c72;
+            font-size: 1.9em;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+        }
+
+        .methodology-card h2 .icon {
+            margin-right: 15px;
+            font-size: 1.2em;
+        }
+
+        /* Enhanced formula display */
+        .formula-display {
+            background: linear-gradient(135deg, #f5f5f5 0%, #eeeeee 100%);
+            border: 2px solid #1976d2;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            position: relative;
+        }
+
+        .formula-display::before {
+            content: "FÓRMULA";
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: white;
+            padding: 0 10px;
+            color: #1976d2;
+            font-weight: 700;
+            font-size: 0.85em;
+        }
+
+        .formula-main {
+            font-family: 'Courier New', monospace;
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #1565c0;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        /* Categories with indicators */
+        .category-breakdown {
+            margin: 30px 0;
+        }
+
+        .category-item {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .category-item:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .category-header {
+            padding: 20px;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .category-title {
+            display: flex;
+            align-items: center;
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #424242;
+        }
+
+        .category-score-badge {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .score-value {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #1976d2;
+        }
+
+        .weight-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .category-content {
+            padding: 20px;
+            display: none;
+        }
+
+        .category-item.active .category-content {
+            display: block;
+        }
+
+        /* Indicators table enhanced */
+        .indicators-list {
+            margin-top: 15px;
+        }
+
+        .indicator-row {
+            padding: 15px;
+            background: #fafafa;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .indicator-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .indicator-name {
+            font-weight: 600;
+            color: #212121;
+            margin-bottom: 4px;
+        }
+
+        .indicator-description {
+            font-size: 0.9em;
+            color: #757575;
+        }
+
+        .indicator-formula {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            background: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+            color: #616161;
+        }
+
+        .indicator-value {
+            font-weight: 700;
+            color: #1976d2;
+        }
+
+        .indicator-score {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .score-bar {
+            width: 100px;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .score-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50 0%, #ffeb3b 50%, #f44336 100%);
+        }
+
+        .indicator-source {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .source-link {
+            color: #1976d2;
+            text-decoration: none;
+            font-size: 0.9em;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .source-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Financial details enhanced */
+        .financial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .financial-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .financial-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+
+        .financial-card.danger {
+            border-color: #f44336;
+            background: linear-gradient(135deg, #fff 0%, #ffebee 100%);
+        }
+
+        .financial-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: #212121;
+            margin-bottom: 10px;
+        }
+
+        .financial-card.danger .financial-value {
+            color: #c62828;
+        }
+
+        .financial-label {
+            font-size: 0.95em;
+            color: #757575;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        .financial-verify {
+            margin-top: 15px;
+        }
+
+        /* Vendor analysis enhanced */
+        .vendor-section {
+            margin: 30px 0;
+        }
+
+        .vendor-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .vendor-card.sanctioned {
+            border-color: #f44336;
+            background: #ffebee;
+        }
+
+        .vendor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 15px;
+        }
+
+        .vendor-info {
+            flex: 1;
+        }
+
+        .vendor-name {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #212121;
+            margin-bottom: 5px;
+        }
+
+        .vendor-cnpj {
+            font-family: 'Courier New', monospace;
+            color: #616161;
+            font-size: 0.95em;
+        }
+
+        .vendor-amount {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #c62828;
+        }
+
+        .vendor-details {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+
+        .document-link {
+            color: #1976d2;
+            text-decoration: none;
+            font-size: 0.85em;
+        }
+
+        .document-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Audit trail */
+        .audit-trail {
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        .audit-step {
+            background: white;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .audit-step-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .audit-step-title {
+            font-weight: 600;
+            color: #212121;
+        }
+
+        .audit-source {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .audit-links {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .audit-link {
+            color: #1976d2;
+            text-decoration: none;
+            font-size: 0.9em;
+            padding: 5px 10px;
+            background: #e3f2fd;
+            border-radius: 4px;
+        }
+
+        .audit-link:hover {
+            background: #bbdefb;
+        }
+
+        /* Interactive elements */
+        .expandable {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .expandable:hover {
+            background: #f5f5f5;
+        }
+
+        .expand-icon {
+            transition: transform 0.3s ease;
+        }
+
+        .expandable.active .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dotted #999;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 300px;
+            background-color: #333;
+            color: #fff;
+            text-align: left;
+            padding: 12px;
+            border-radius: 8px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -150px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Footer enhanced */
+        .footer-complete {
+            background: #263238;
+            color: #eceff1;
+            padding: 40px;
+            text-align: center;
+            border-radius: 16px;
+            margin-top: 50px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .footer-link {
+            color: #90caf9;
+            text-decoration: none;
+        }
+
+        .footer-link:hover {
+            color: #64b5f6;
+            text-decoration: underline;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .header-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .deputy-photo {
+                margin: 0 auto;
+            }
+
+            .financial-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .indicator-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            .verify-btn, .audit-link {
+                background: #333 !important;
+                color: white !important;
+            }
+
+            .expandable .category-content {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Enhanced Header -->
+        <div class="header-complete">
+            <div class="header-grid">
+                <img src="https://www.camara.leg.br/internet/deputado/bandep/pagina_do_deputado/foto/160541.jpg" alt="Unknown" class="deputy-photo" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgZmlsbD0iI2RkZCIvPjx0ZXh0IHRleHQtYW5jaG9yPSJtaWRkbGUiIHg9IjYwIiB5PSI2MCIgZmlsbD0iIzk5OSIgZm9udC1zaXplPSI2MCI+PzwvdGV4dD48L3N2Zz4='">
+
+                <div class="deputy-info">
+                    <h1>Unknown</h1>
+                    <div class="deputy-details">
+                        <div class="detail-item">
+                            <strong>Cargo:</strong> Presidente da Câmara dos Deputados
+                        </div>
+                        <div class="detail-item">
+                            <strong>Partido:</strong> Unknown
+                        </div>
+                        <div class="detail-item">
+                            <strong>Estado:</strong> Unknown
+                        </div>
+                        <div class="detail-item">
+                            <strong>CPF:</strong> <span class="tooltip">678.***.***-25
+                                <span class="tooltiptext">O CPF completo pode ser verificado nos registros oficiais do TSE e Câmara dos Deputados</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="score-display-enhanced">
+                    <div class="score-circle">
+                        <svg width="150" height="150" class="score-svg">
+                            <circle cx="75" cy="75" r="70" class="score-background"></circle>
+                            <circle cx="75" cy="75" r="70" class="score-progress"
+                                    style="stroke: #ffa000;
+                                           stroke-dasharray: 204.0788056112872 440;"></circle>
+                        </svg>
+                        <div class="score-text" style="color: #ffa000;">
+                            0.464
+                        </div>
+                    </div>
+                    <div class="risk-label" style="color: #ffa000;">
+                        MODERADO
+                    </div>
+                    <div style="font-size: 0.9em; color: #757575;">
+                        Confiança: 90.0%
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Verification Links -->
+        <div class="verification-ribbon">
+            <h4>🔗 Verificação Rápida - Todos os Dados São Públicos e Auditáveis</h4>
+            <a href="https://www.camara.leg.br/deputados/160541" target="_blank" class="verify-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/></svg>
+                Perfil Oficial
+            </a>
+            <a href="https://www.camara.leg.br/deputados/160541/biografia" target="_blank" class="verify-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+                Gastos CEAP
+            </a>
+            <a href="https://portaldatransparencia.gov.br/busca/pessoa-fisica?termo=" target="_blank" class="verify-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                Portal Transparência
+            </a>
+            <a href="https://contas.tcu.gov.br/pessoal/app/pessoa/listarPessoas?termo=" target="_blank" class="verify-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+                Verificar TCU
+            </a>
+            <a href="https://divulgacandcontas.tse.jus.br/divulga/#/candidato/null/null/" target="_blank" class="verify-btn">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 13v7H4V6h10V4H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-5.5-6l1.41 1.41L11 11.33V16h2v-4.67l2.91-2.92L17.5 10 12 4.5 6.5 10z"/></svg>
+                Histórico TSE
+            </a>
+        </div>
+
+        <!-- Methodology Section -->
+        <div class="methodology-card">
+            <h2><span class="icon">🔬</span>Metodologia Científica Transparente</h2>
+
+            <div class="formula-display">
+                <div class="formula-main">
+                    Score de Risco = Σ(Categoria_i × Peso_i)
+                </div>
+                <div style="margin-top: 10px; text-align: center; font-size: 0.9em; color: #616161;">
+                    onde cada Categoria = Σ(Indicador × Peso × Confiança) / Σ(Peso)
+                </div>
+            </div>
+
+            <p style="margin: 25px 0; line-height: 1.8;">
+                Analisamos <strong>15 indicadores</strong> divididos em
+                <strong>5 categorias</strong>. Cada indicador possui peso e confiança baseados na
+                qualidade dos dados. <strong>Todos os cálculos são transparentes e verificáveis.</strong>
+            </p>
+
+            <!-- Categories with clickable indicators -->
+            <div class="category-breakdown">
+
+                <div class="category-item" onclick="this.classList.toggle('active')">
+                    <div class="category-header expandable">
+                        <div class="category-title">
+                            💰 Irregularidades Financeiras
+                        </div>
+                        <div class="category-score-badge">
+                            <span class="weight-badge">Peso: 30%</span>
+                            <span class="score-value">0.198</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                    </div>
+
+                    <div class="category-content">
+                        <div class="indicators-list">
+
+                            <div class="indicator-row">
+                                <div class="indicator-info">
+                                    <div class="indicator-name">Taxa de Fornecedores Sancionados</div>
+                                    <div class="indicator-description">Percentual de fornecedores que possuem sanções oficiais</div>
+                                    <div class="indicator-formula">Cálculo: (fornecedores_sancionados / total_fornecedores) * 2</div>
+                                </div>
+
+                                <div class="indicator-value">
+                                    <span class="tooltip">6.0%
+                                        <span class="tooltiptext">Valor observado nos dados oficiais. Clique na fonte para verificar.</span>
+                                    </span>
+                                </div>
+
+                                <div class="indicator-score">
+                                    <span>0.12</span>
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width: 11.904761904761903%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="indicator-source">
+                                    <a href="https://portaldatransparencia.gov.br/busca/pessoa-fisica?termo=" target="_blank" class="source-link">
+                                        Portal da Transparência →
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="indicator-row">
+                                <div class="indicator-info">
+                                    <div class="indicator-name">Dinheiro para Empresas Sancionadas</div>
+                                    <div class="indicator-description">Percentual do dinheiro que foi para empresas punidas</div>
+                                    <div class="indicator-formula">Cálculo: (valor_sancionados / valor_total) * 3</div>
+                                </div>
+
+                                <div class="indicator-value">
+                                    <span class="tooltip">R$ 7,823.12
+                                        <span class="tooltiptext">Valor observado nos dados oficiais. Clique na fonte para verificar.</span>
+                                    </span>
+                                </div>
+
+                                <div class="indicator-score">
+                                    <span>0.23</span>
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width: 23.468961027662527%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="indicator-source">
+                                    <a href="https://portaldatransparencia.gov.br/busca/pessoa-fisica?termo=" target="_blank" class="source-link">
+                                        Câmara dos Deputados + Portal Transparência →
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="indicator-row">
+                                <div class="indicator-info">
+                                    <div class="indicator-name">Concentração de Fornecedores</div>
+                                    <div class="indicator-description">Quanto dos gastos está concentrado nos top 10 fornecedores</div>
+                                    <div class="indicator-formula">Cálculo: max(0, (concentração - 0.3) * 1.43)</div>
+                                </div>
+
+                                <div class="indicator-value">
+                                    <span class="tooltip">57.4%
+                                        <span class="tooltiptext">Valor observado nos dados oficiais. Clique na fonte para verificar.</span>
+                                    </span>
+                                </div>
+
+                                <div class="indicator-score">
+                                    <span>0.39</span>
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width: 39.13097017350705%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="indicator-source">
+                                    <a href="https://dadosabertos.camara.leg.br/api/v2/deputados/160541" target="_blank" class="source-link">
+                                        Câmara dos Deputados →
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="indicator-row">
+                                <div class="indicator-info">
+                                    <div class="indicator-name">Padrão de Gastos Irregular</div>
+                                    <div class="indicator-description">Variância nos padrões de gastos mensais</div>
+                                    <div class="indicator-formula">Cálculo: variância_normalizada / 100</div>
+                                </div>
+
+                                <div class="indicator-value">
+                                    <span class="tooltip">σ² = 2.20
+                                        <span class="tooltiptext">Valor observado nos dados oficiais. Clique na fonte para verificar.</span>
+                                    </span>
+                                </div>
+
+                                <div class="indicator-score">
+                                    <span>0.02</span>
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width: 2.2046082652714847%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="indicator-source">
+                                    <a href="https://dadosabertos.camara.leg.br/api/v2/deputados/160541" target="_blank" class="source-link">
+                                        Câmara dos Deputados →
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="category-item" onclick="this.classList.toggle('active')">
+                    <div class="category-header expandable">
+                        <div class="category-title">
+                            🕸️ Padrões de Rede
+                        </div>
+                        <div class="category-score-badge">
+                            <span class="weight-badge">Peso: 25%</span>
+                            <span class="score-value">0.668</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                    </div>
+
+                    <div class="category-content">
+                        <div class="indicators-list">
+
+                            <div class="indicator-row">
+                                <div class="indicator-info">
+                                    <div class="indicator-name">Tamanho da Rede de Fornecedores</div>
+                                    <div class="indicator-description">Número de fornecedores únicos vs. esperado</div>
+                                    <div class="indicator-formula">Cálculo: |vendors - 50| / 50</div>
+                                </div>
+
+                                <div class="indicator-value">
+                                    <span class="tooltip">84 fornecedores
+                                        <span class="tooltiptext">Valor observado nos dados oficiais. Clique na fonte para verificar.</span>
+                                    </span>
+                                </div>
+
+                                <div class="indicator-score">
+                                    <span>0.68</span>
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width: 68.0%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="indicator-source">
+                                    <a href="https://dadosabertos.camara.leg.br/api/v2/deputados/160541" target="_blank" class="source-link">
+                                        Câmara dos Deputados →
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="indicator-row">
+                                <div class="indicator-info">
+                                    <div class="indicator-name">Fornecedores Sancionados Recorrentes</div>
+                                    <div class="indicator-description">Empresas sancionadas que recebem pagamentos repetidos</div>
+                                    <div class="indicator-formula">Cálculo: min(recorrentes / 3, 1.0)</div>
+                                </div>
+
+                                <div class="indicator-value">
+                                    <span class="tooltip">5 empresas
+                                        <span class="tooltiptext">Valor observado nos dados oficiais. Clique na fonte para verificar.</span>
+                                    </span>
+                                </div>
+
+                                <div class="indicator-score">
+                                    <span>1.00</span>
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width: 100.0%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="indicator-source">
+                                    <a href="https://portaldatransparencia.gov.br/busca/pessoa-fisica?termo=" target="_blank" class="source-link">
+                                        Portal da Transparência →
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="indicator-row">
+                                <div class="indicator-info">
+                                    <div class="indicator-name">Indicadores de Empresas de Fachada</div>
+                                    <div class="indicator-description">Empresas com características suspeitas (mesmo endereço, sócios, etc)</div>
+                                    <div class="indicator-formula">Cálculo: min(indicadores / 5, 1.0)</div>
+                                </div>
+
+                                <div class="indicator-value">
+                                    <span class="tooltip">2 indicadores
+                                        <span class="tooltiptext">Valor observado nos dados oficiais. Clique na fonte para verificar.</span>
+                                    </span>
+                                </div>
+
+                                <div class="indicator-score">
+                                    <span>0.40</span>
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width: 40.0%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="indicator-source">
+                                    <a href="#" target="_blank" class="source-link">
+                                        Análise de Padrões →
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="category-item" onclick="this.classList.toggle('active')">
+                    <div class="category-header expandable">
+                        <div class="category-title">
+                            ⚖️ Conformidade Legal
+                        </div>
+                        <div class="category-score-badge">
+                            <span class="weight-badge">Peso: 20%</span>
+                            <span class="score-value">0.970</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                    </div>
+
+                    <div class="category-content">
+                        <div class="indicators-list">
+
+                            <div class="indicator-row">
+                                <div class="indicator-info">
+                                    <div class="indicator-name">Inabilitações no TCU</div>
+                                    <div class="indicator-description">Registros de punições no Tribunal de Contas da União</div>
+                                    <div class="indicator-formula">Cálculo: min(registros / 10, 1.0)</div>
+                                </div>
+
+                                <div class="indicator-value">
+                                    <span class="tooltip">25 registros
+                                        <span class="tooltiptext">Valor observado nos dados oficiais. Clique na fonte para verificar.</span>
+                                    </span>
+                                </div>
+
+                                <div class="indicator-score">
+                                    <span>1.00</span>
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width: 100.0%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="indicator-source">
+                                    <a href="https://contas.tcu.gov.br/pessoal/app/pessoa/listarPessoas" target="_blank" class="source-link">
+                                        TCU →
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="indicator-row">
+                                <div class="indicator-info">
+                                    <div class="indicator-name">Sanções Ativas</div>
+                                    <div class="indicator-description">Número de sanções atualmente vigentes</div>
+                                    <div class="indicator-formula">Cálculo: min(sanções / 5, 1.0)</div>
+                                </div>
+
+                                <div class="indicator-value">
+                                    <span class="tooltip">5 sanções
+                                        <span class="tooltiptext">Valor observado nos dados oficiais. Clique na fonte para verificar.</span>
+                                    </span>
+                                </div>
+
+                                <div class="indicator-score">
+                                    <span>1.00</span>
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width: 100.0%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="indicator-source">
+                                    <a href="https://portaldatransparencia.gov.br/busca/pessoa-fisica?termo=" target="_blank" class="source-link">
+                                        Portal da Transparência →
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="indicator-row">
+                                <div class="indicator-info">
+                                    <div class="indicator-name">Registros de Nepotismo</div>
+                                    <div class="indicator-description">Casos registrados no Cadastro Nacional de Nepotismo</div>
+                                    <div class="indicator-formula">Cálculo: min(casos / 5, 1.0)</div>
+                                </div>
+
+                                <div class="indicator-value">
+                                    <span class="tooltip">15 casos
+                                        <span class="tooltiptext">Valor observado nos dados oficiais. Clique na fonte para verificar.</span>
+                                    </span>
+                                </div>
+
+                                <div class="indicator-score">
+                                    <span>1.00</span>
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width: 100.0%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="indicator-source">
+                                    <a href="https://portaldatransparencia.gov.br/busca/pessoa-fisica?termo=" target="_blank" class="source-link">
+                                        Portal da Transparência - CNEP →
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="category-item" onclick="this.classList.toggle('active')">
+                    <div class="category-header expandable">
+                        <div class="category-title">
+                            🔍 Transparência
+                        </div>
+                        <div class="category-score-badge">
+                            <span class="weight-badge">Peso: 15%</span>
+                            <span class="score-value">0.140</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                    </div>
+
+                    <div class="category-content">
+                        <div class="indicators-list">
+
+                            <div class="indicator-row">
+                                <div class="indicator-info">
+                                    <div class="indicator-name">Documentação Faltante</div>
+                                    <div class="indicator-description">Percentual de despesas sem documentação adequada</div>
+                                    <div class="indicator-formula">Cálculo: docs_faltantes / total_docs</div>
+                                </div>
+
+                                <div class="indicator-value">
+                                    <span class="tooltip">5.0%
+                                        <span class="tooltiptext">Valor observado nos dados oficiais. Clique na fonte para verificar.</span>
+                                    </span>
+                                </div>
+
+                                <div class="indicator-score">
+                                    <span>0.05</span>
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width: 5.0%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="indicator-source">
+                                    <a href="https://dadosabertos.camara.leg.br/api/v2/deputados/160541" target="_blank" class="source-link">
+                                        Câmara dos Deputados →
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="indicator-row">
+                                <div class="indicator-info">
+                                    <div class="indicator-name">Atraso na Prestação de Contas</div>
+                                    <div class="indicator-description">Média de dias de atraso na apresentação de documentos</div>
+                                    <div class="indicator-formula">Cálculo: min(dias_atraso / 30, 1.0)</div>
+                                </div>
+
+                                <div class="indicator-value">
+                                    <span class="tooltip">10 dias
+                                        <span class="tooltiptext">Valor observado nos dados oficiais. Clique na fonte para verificar.</span>
+                                    </span>
+                                </div>
+
+                                <div class="indicator-score">
+                                    <span>0.33</span>
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width: 33.33333333333333%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="indicator-source">
+                                    <a href="https://dadosabertos.camara.leg.br/api/v2/deputados/160541" target="_blank" class="source-link">
+                                        Câmara dos Deputados →
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="indicator-row">
+                                <div class="indicator-info">
+                                    <div class="indicator-name">Qualidade da Informação</div>
+                                    <div class="indicator-description">Completude e clareza das informações fornecidas</div>
+                                    <div class="indicator-formula">Cálculo: 1.0 - quality_score</div>
+                                </div>
+
+                                <div class="indicator-value">
+                                    <span class="tooltip">0.80
+                                        <span class="tooltiptext">Valor observado nos dados oficiais. Clique na fonte para verificar.</span>
+                                    </span>
+                                </div>
+
+                                <div class="indicator-score">
+                                    <span>0.20</span>
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width: 19.999999999999996%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="indicator-source">
+                                    <a href="#" target="_blank" class="source-link">
+                                        Análise de Dados →
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="category-item" onclick="this.classList.toggle('active')">
+                    <div class="category-header expandable">
+                        <div class="category-title">
+                            📊 Anomalias Estatísticas
+                        </div>
+                        <div class="category-score-badge">
+                            <span class="weight-badge">Peso: 10%</span>
+                            <span class="score-value">0.225</span>
+                            <span class="expand-icon">▼</span>
+                        </div>
+                    </div>
+
+                    <div class="category-content">
+                        <div class="indicators-list">
+
+                            <div class="indicator-row">
+                                <div class="indicator-info">
+                                    <div class="indicator-name">Probabilidade Estatística do Padrão</div>
+                                    <div class="indicator-description">Chance do padrão observado ocorrer naturalmente</div>
+                                    <div class="indicator-formula">Cálculo: 1.0 - probabilidade se p < 0.05</div>
+                                </div>
+
+                                <div class="indicator-value">
+                                    <span class="tooltip">10.0000%
+                                        <span class="tooltiptext">Valor observado nos dados oficiais. Clique na fonte para verificar.</span>
+                                    </span>
+                                </div>
+
+                                <div class="indicator-score">
+                                    <span>0.00</span>
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width: 0%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="indicator-source">
+                                    <a href="#" target="_blank" class="source-link">
+                                        Análise Estatística →
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="indicator-row">
+                                <div class="indicator-info">
+                                    <div class="indicator-name">Desvios Padrão da Normalidade</div>
+                                    <div class="indicator-description">Quantos desvios padrão os dados estão da média esperada</div>
+                                    <div class="indicator-formula">Cálculo: min(|σ| / 3, 1.0)</div>
+                                </div>
+
+                                <div class="indicator-value">
+                                    <span class="tooltip">1.50σ
+                                        <span class="tooltiptext">Valor observado nos dados oficiais. Clique na fonte para verificar.</span>
+                                    </span>
+                                </div>
+
+                                <div class="indicator-score">
+                                    <span>0.50</span>
+                                    <div class="score-bar">
+                                        <div class="score-bar-fill" style="width: 50.0%;"></div>
+                                    </div>
+                                </div>
+
+                                <div class="indicator-source">
+                                    <a href="#" target="_blank" class="source-link">
+                                        Análise Estatística →
+                                    </a>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Financial Analysis Section -->
+        <div class="methodology-card">
+            <h2><span class="icon">💰</span>Análise Financeira Detalhada</h2>
+
+            <div class="financial-grid">
+                <div class="financial-card">
+                    <div class="financial-value">R$ 100,001.70</div>
+                    <div class="financial-label">Total Gasto</div>
+                    <div class="financial-verify">
+                        <a href="https://dadosabertos.camara.leg.br/api/v2/deputados/160541/despesas?ano=2025"
+                           target="_blank" class="verify-btn" style="font-size: 0.85em; padding: 5px 12px;">
+                            Verificar na API
+                        </a>
+                    </div>
+                </div>
+
+                <div class="financial-card danger">
+                    <div class="financial-value">R$ 7,823.12</div>
+                    <div class="financial-label">Para Empresas Sancionadas</div>
+                    <div class="financial-verify">
+                        <a href="https://portaldatransparencia.gov.br/sancoes"
+                           target="_blank" class="verify-btn" style="font-size: 0.85em; padding: 5px 12px;">
+                            Ver Sanções
+                        </a>
+                    </div>
+                </div>
+
+                <div class="financial-card">
+                    <div class="financial-value">84</div>
+                    <div class="financial-label">Fornecedores</div>
+                    <div style="margin-top: 10px; font-size: 0.85em; color: #757575;">
+                        300 transações
+                    </div>
+                </div>
+
+                <div class="financial-card danger">
+                    <div class="financial-value">7.8%</div>
+                    <div class="financial-label">% para Sancionados</div>
+                    <div style="margin-top: 10px; font-size: 0.85em; color: #757575;">
+                        Taxa estatisticamente anômala
+                    </div>
+                </div>
+            </div>
+
+            <div class="vendor-section">
+                <h3 style="margin-bottom: 20px; color: #c62828;">🚨 Empresas Sancionadas que Receberam Pagamentos</h3>
+
+                <div class="vendor-card sanctioned">
+                    <div class="vendor-header">
+                        <div class="vendor-info">
+                            <div class="vendor-name">BELIZE COMPANY AUTO POSTO LTDA</div>
+                            <div class="vendor-cnpj">CNPJ: 29.032.820/0001-47</div>
+                            <div style="margin-top: 8px;">
+                                <span style="background: #f44336; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600;">
+                                    Suspensão temporária (2025-2027)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="vendor-amount">R$ 2,113.97</div>
+                    </div>
+
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <a href="https://portaldatransparencia.gov.br/sancoes/ceis?cnpjSancionado=29032820000147" target="_blank" class="verify-btn" style="font-size: 0.85em;">
+                            🔍 Verificar Sanção
+                        </a>
+                        <a href="https://portaldatransparencia.gov.br/busca/pessoa-juridica?termo=29032820000147"
+                           target="_blank" class="verify-btn" style="font-size: 0.85em;">
+                            📊 Ver no Portal
+                        </a>
+                    </div>
+
+                    <div class="vendor-details">
+                        <div style="font-weight: 600; margin-bottom: 10px;">Últimas Transações:</div>
+
+                        <div class="transaction-item">
+                            <div>
+                                <strong>R$ 200.00</strong> em 2025-03-18<br>
+                                <span style="font-size: 0.85em; color: #757575;">
+                                    COMBUSTÍVEIS E LUBRIFICANTES.
+                                </span>
+                            </div>
+                            <a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7891086" target="_blank" class="document-link">Ver documento →</a>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div>
+                                <strong>R$ 100.00</strong> em 2025-04-09<br>
+                                <span style="font-size: 0.85em; color: #757575;">
+                                    COMBUSTÍVEIS E LUBRIFICANTES.
+                                </span>
+                            </div>
+                            <a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7902857" target="_blank" class="document-link">Ver documento →</a>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div>
+                                <strong>R$ 100.00</strong> em 2025-05-13<br>
+                                <span style="font-size: 0.85em; color: #757575;">
+                                    COMBUSTÍVEIS E LUBRIFICANTES.
+                                </span>
+                            </div>
+                            <a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7917608" target="_blank" class="document-link">Ver documento →</a>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="vendor-card sanctioned">
+                    <div class="vendor-header">
+                        <div class="vendor-info">
+                            <div class="vendor-name">MAXI LUB LTDA</div>
+                            <div class="vendor-cnpj">CNPJ: 04.735.992/0001-56</div>
+                            <div style="margin-top: 8px;">
+                                <span style="background: #f44336; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600;">
+                                    Impedimento de contratar (2025-2027)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="vendor-amount">R$ 1,628.21</div>
+                    </div>
+
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <a href="https://portaldatransparencia.gov.br/sancoes/ceis?cnpjSancionado=04735992000156" target="_blank" class="verify-btn" style="font-size: 0.85em;">
+                            🔍 Verificar Sanção
+                        </a>
+                        <a href="https://portaldatransparencia.gov.br/busca/pessoa-juridica?termo=04735992000156"
+                           target="_blank" class="verify-btn" style="font-size: 0.85em;">
+                            📊 Ver no Portal
+                        </a>
+                    </div>
+
+                    <div class="vendor-details">
+                        <div style="font-weight: 600; margin-bottom: 10px;">Últimas Transações:</div>
+
+                        <div class="transaction-item">
+                            <div>
+                                <strong>R$ 569.74</strong> em 2025-04-19<br>
+                                <span style="font-size: 0.85em; color: #757575;">
+                                    COMBUSTÍVEIS E LUBRIFICANTES.
+                                </span>
+                            </div>
+                            <a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7926684" target="_blank" class="document-link">Ver documento →</a>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div>
+                                <strong>R$ 500.00</strong> em 2025-06-28<br>
+                                <span style="font-size: 0.85em; color: #757575;">
+                                    COMBUSTÍVEIS E LUBRIFICANTES.
+                                </span>
+                            </div>
+                            <a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7949410" target="_blank" class="document-link">Ver documento →</a>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div>
+                                <strong>R$ 558.47</strong> em 2025-07-13<br>
+                                <span style="font-size: 0.85em; color: #757575;">
+                                    COMBUSTÍVEIS E LUBRIFICANTES.
+                                </span>
+                            </div>
+                            <a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7949423" target="_blank" class="document-link">Ver documento →</a>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="vendor-card sanctioned">
+                    <div class="vendor-header">
+                        <div class="vendor-info">
+                            <div class="vendor-name">AUTO POSTO FORENE LTDA ME</div>
+                            <div class="vendor-cnpj">CNPJ: 05.459.764/0001-63</div>
+                            <div style="margin-top: 8px;">
+                                <span style="background: #f44336; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600;">
+                                    Suspensão temporária (2025-2027)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="vendor-amount">R$ 1,126.87</div>
+                    </div>
+
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <a href="https://portaldatransparencia.gov.br/sancoes/ceis?cnpjSancionado=05459764000163" target="_blank" class="verify-btn" style="font-size: 0.85em;">
+                            🔍 Verificar Sanção
+                        </a>
+                        <a href="https://portaldatransparencia.gov.br/busca/pessoa-juridica?termo=05459764000163"
+                           target="_blank" class="verify-btn" style="font-size: 0.85em;">
+                            📊 Ver no Portal
+                        </a>
+                    </div>
+
+                    <div class="vendor-details">
+                        <div style="font-weight: 600; margin-bottom: 10px;">Últimas Transações:</div>
+
+                        <div class="transaction-item">
+                            <div>
+                                <strong>R$ 570.19</strong> em 2024-09-12<br>
+                                <span style="font-size: 0.85em; color: #757575;">
+                                    COMBUSTÍVEIS E LUBRIFICANTES.
+                                </span>
+                            </div>
+                            <a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7820508" target="_blank" class="document-link">Ver documento →</a>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div>
+                                <strong>R$ 556.68</strong> em 2024-12-21<br>
+                                <span style="font-size: 0.85em; color: #757575;">
+                                    COMBUSTÍVEIS E LUBRIFICANTES.
+                                </span>
+                            </div>
+                            <a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7855686" target="_blank" class="document-link">Ver documento →</a>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="vendor-card sanctioned">
+                    <div class="vendor-header">
+                        <div class="vendor-info">
+                            <div class="vendor-name">BROAD BRASIL LTDA</div>
+                            <div class="vendor-cnpj">CNPJ: 48.949.641/0001-13</div>
+                            <div style="margin-top: 8px;">
+                                <span style="background: #f44336; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600;">
+                                    Inidoneidade (2025-2027)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="vendor-amount">R$ 1,994.00</div>
+                    </div>
+
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <a href="https://portaldatransparencia.gov.br/sancoes/ceis?cnpjSancionado=48949641000113" target="_blank" class="verify-btn" style="font-size: 0.85em;">
+                            🔍 Verificar Sanção
+                        </a>
+                        <a href="https://portaldatransparencia.gov.br/busca/pessoa-juridica?termo=48949641000113"
+                           target="_blank" class="verify-btn" style="font-size: 0.85em;">
+                            📊 Ver no Portal
+                        </a>
+                    </div>
+
+                    <div class="vendor-details">
+                        <div style="font-weight: 600; margin-bottom: 10px;">Últimas Transações:</div>
+
+                        <div class="transaction-item">
+                            <div>
+                                <strong>R$ 997.00</strong> em 2025-07-16<br>
+                                <span style="font-size: 0.85em; color: #757575;">
+                                    MANUTENÇÃO DE ESCRITÓRIO DE APOIO À ATIVIDADE PARL
+                                </span>
+                            </div>
+                            <a href="https://www.camara.leg.br/cota-parlamentar/documentos/publ/2377/2025/7950433.pdf" target="_blank" class="document-link">Ver documento →</a>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div>
+                                <strong>R$ 997.00</strong> em 2025-08-25<br>
+                                <span style="font-size: 0.85em; color: #757575;">
+                                    MANUTENÇÃO DE ESCRITÓRIO DE APOIO À ATIVIDADE PARL
+                                </span>
+                            </div>
+                            <a href="https://www.camara.leg.br/cota-parlamentar/documentos/publ/2377/2025/7976568.pdf" target="_blank" class="document-link">Ver documento →</a>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="vendor-card sanctioned">
+                    <div class="vendor-header">
+                        <div class="vendor-info">
+                            <div class="vendor-name">MAJH COM. DE COMBUST. E DERIV DE PETRO.LTDA EPP</div>
+                            <div class="vendor-cnpj">CNPJ: 08.886.885/0001-80</div>
+                            <div style="margin-top: 8px;">
+                                <span style="background: #f44336; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.85em; font-weight: 600;">
+                                    Suspensão temporária (2025-2027)
+                                </span>
+                            </div>
+                        </div>
+                        <div class="vendor-amount">R$ 960.07</div>
+                    </div>
+
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <a href="https://portaldatransparencia.gov.br/sancoes/ceis?cnpjSancionado=08886885000180" target="_blank" class="verify-btn" style="font-size: 0.85em;">
+                            🔍 Verificar Sanção
+                        </a>
+                        <a href="https://portaldatransparencia.gov.br/busca/pessoa-juridica?termo=08886885000180"
+                           target="_blank" class="verify-btn" style="font-size: 0.85em;">
+                            📊 Ver no Portal
+                        </a>
+                    </div>
+
+                    <div class="vendor-details">
+                        <div style="font-weight: 600; margin-bottom: 10px;">Últimas Transações:</div>
+
+                        <div class="transaction-item">
+                            <div>
+                                <strong>R$ 530.11</strong> em 2025-08-03<br>
+                                <span style="font-size: 0.85em; color: #757575;">
+                                    COMBUSTÍVEIS E LUBRIFICANTES.
+                                </span>
+                            </div>
+                            <a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7958348" target="_blank" class="document-link">Ver documento →</a>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div>
+                                <strong>R$ 209.96</strong> em 2025-08-03<br>
+                                <span style="font-size: 0.85em; color: #757575;">
+                                    COMBUSTÍVEIS E LUBRIFICANTES.
+                                </span>
+                            </div>
+                            <a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7958344" target="_blank" class="document-link">Ver documento →</a>
+                        </div>
+
+                        <div class="transaction-item">
+                            <div>
+                                <strong>R$ 220.00</strong> em 2023-08-12<br>
+                                <span style="font-size: 0.85em; color: #757575;">
+                                    COMBUSTÍVEIS E LUBRIFICANTES.
+                                </span>
+                            </div>
+                            <a href="http://www.camara.leg.br/cota-parlamentar/nota-fiscal-eletronica?ideDocumentoFiscal=7610215" target="_blank" class="document-link">Ver documento →</a>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="methodology-card">
+            <h2><span class="icon">🔍</span>Trilha de Auditoria - Como Coletamos os Dados</h2>
+
+            <div class="audit-trail">
+
+                <div class="audit-step">
+                    <div class="audit-step-header">
+                        <div class="audit-step-title">Buscar dados do deputado</div>
+                        <div class="audit-source">Câmara dos Deputados</div>
+                    </div>
+                    <div style="color: #616161; margin: 5px 0;">
+                        Nome: Unknown, CPF: 67821090425
+                    </div>
+                    <div class="audit-links">
+                        <a href="https://dadosabertos.camara.leg.br/api/v2/deputados/160541" target="_blank" class="audit-link">
+                            API →
+                        </a>
+                        <a href="https://www.camara.leg.br/deputados/160541" target="_blank" class="audit-link">
+                            Verificar →
+                        </a>
+                    </div>
+                </div>
+
+                <div class="audit-step">
+                    <div class="audit-step-header">
+                        <div class="audit-step-title">Despesas CEAP 2025</div>
+                        <div class="audit-source">Câmara dos Deputados</div>
+                    </div>
+                    <div style="color: #616161; margin: 5px 0;">
+                        R$ 34,466.31 em 100 transações
+                    </div>
+                    <div class="audit-links">
+                        <a href="https://dadosabertos.camara.leg.br/api/v2/deputados/160541/despesas?ano=2025" target="_blank" class="audit-link">
+                            API →
+                        </a>
+                        <a href="https://www.camara.leg.br/cota-parlamentar/sumarizado?nuDeputadoId=160541&dataInicio=01/2025&dataFim=12/2025" target="_blank" class="audit-link">
+                            Verificar →
+                        </a>
+                    </div>
+                </div>
+
+                <div class="audit-step">
+                    <div class="audit-step-header">
+                        <div class="audit-step-title">Despesas CEAP 2024</div>
+                        <div class="audit-source">Câmara dos Deputados</div>
+                    </div>
+                    <div style="color: #616161; margin: 5px 0;">
+                        R$ 34,422.20 em 100 transações
+                    </div>
+                    <div class="audit-links">
+                        <a href="https://dadosabertos.camara.leg.br/api/v2/deputados/160541/despesas?ano=2024" target="_blank" class="audit-link">
+                            API →
+                        </a>
+                        <a href="https://www.camara.leg.br/cota-parlamentar/sumarizado?nuDeputadoId=160541&dataInicio=01/2024&dataFim=12/2024" target="_blank" class="audit-link">
+                            Verificar →
+                        </a>
+                    </div>
+                </div>
+
+                <div class="audit-step">
+                    <div class="audit-step-header">
+                        <div class="audit-step-title">Despesas CEAP 2023</div>
+                        <div class="audit-source">Câmara dos Deputados</div>
+                    </div>
+                    <div style="color: #616161; margin: 5px 0;">
+                        R$ 31,113.19 em 100 transações
+                    </div>
+                    <div class="audit-links">
+                        <a href="https://dadosabertos.camara.leg.br/api/v2/deputados/160541/despesas?ano=2023" target="_blank" class="audit-link">
+                            API →
+                        </a>
+                        <a href="https://www.camara.leg.br/cota-parlamentar/sumarizado?nuDeputadoId=160541&dataInicio=01/2023&dataFim=12/2023" target="_blank" class="audit-link">
+                            Verificar →
+                        </a>
+                    </div>
+                </div>
+
+                <div class="audit-step">
+                    <div class="audit-step-header">
+                        <div class="audit-step-title">Verificação de sanções</div>
+                        <div class="audit-source">Portal da Transparência</div>
+                    </div>
+                    <div style="color: #616161; margin: 5px 0;">
+                        5 empresas sancionadas encontradas, R$ 7,823.12 em pagamentos
+                    </div>
+                    <div class="audit-links">
+                        <a href="https://api.portaldatransparencia.gov.br/api-de-dados/ceis" target="_blank" class="audit-link">
+                            API →
+                        </a>
+                        <a href="https://portaldatransparencia.gov.br/sancoes" target="_blank" class="audit-link">
+                            Verificar →
+                        </a>
+                    </div>
+                </div>
+
+                <div class="audit-step">
+                    <div class="audit-step-header">
+                        <div class="audit-step-title">Verificação TCU</div>
+                        <div class="audit-source">Tribunal de Contas da União</div>
+                    </div>
+                    <div style="color: #616161; margin: 5px 0;">
+                        25 registros de inabilitação encontrados
+                    </div>
+                    <div class="audit-links">
+                        <a href="https://contas.tcu.gov.br/ords/tcuapp/f" target="_blank" class="audit-link">
+                            API →
+                        </a>
+                        <a href="https://contas.tcu.gov.br/pessoal/app/pessoa/listarPessoas?termo=" target="_blank" class="audit-link">
+                            Verificar →
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="methodology-card">
+            <h2><span class="icon">📊</span>Como Interpretar o Score</h2>
+
+            <div style="background: linear-gradient(90deg, #4caf50 0%, #ffeb3b 33%, #ff9800 66%, #f44336 100%);
+                        height: 40px; border-radius: 8px; margin: 20px 0; position: relative;">
+                <div style="position: absolute; left: 46.381546729838%; top: -30px;
+                            transform: translateX(-50%);">
+                    <div style="background: #ffa000; color: white; padding: 5px 10px;
+                                border-radius: 4px; font-weight: 600;">
+                        0.464
+                    </div>
+                    <div style="width: 2px; height: 30px; background: #ffa000;
+                                margin: 0 auto;"></div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; margin-top: 40px;">
+                <div style="text-align: center;">
+                    <strong>0.0 - 0.2</strong><br>
+                    <span style="color: #4caf50;">MÍNIMO</span>
+                </div>
+                <div style="text-align: center;">
+                    <strong>0.2 - 0.4</strong><br>
+                    <span style="color: #388e3c;">BAIXO</span>
+                </div>
+                <div style="text-align: center;">
+                    <strong>0.4 - 0.6</strong><br>
+                    <span style="color: #ffa000;">MODERADO</span>
+                </div>
+                <div style="text-align: center;">
+                    <strong>0.6 - 0.8</strong><br>
+                    <span style="color: #ff6f00;">ALTO</span>
+                </div>
+                <div style="text-align: center;">
+                    <strong>0.8 - 1.0</strong><br>
+                    <span style="color: #d32f2f;">CRÍTICO</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; padding: 20px; background: #f5f5f5; border-radius: 8px;">
+                <h4 style="margin-bottom: 15px;">📝 Notas Importantes:</h4>
+                <ul style="line-height: 1.8; color: #616161;">
+                    <li>Este score é baseado em <strong>dados públicos oficiais</strong> disponíveis nas APIs do governo</li>
+                    <li>Todos os cálculos são <strong>transparentes e reproduzíveis</strong></li>
+                    <li>Os pesos podem ser <strong>ajustados</strong> conforme a prioridade de cada categoria</li>
+                    <li>Não fazemos <strong>julgamentos</strong>, apenas apresentamos correlações estatísticas</li>
+                    <li>Todos têm direito ao <strong>contraditório e ampla defesa</strong></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer-complete">
+            <h3>Sistema de Análise de Transparência Cidadã</h3>
+            <p style="margin-top: 15px; line-height: 1.8;">
+                <strong>Metodologia:</strong> Sistema de pontuação científico, transparente e ajustável<br>
+                <strong>Dados:</strong> 100% fontes oficiais públicas brasileiras<br>
+                <strong>Código:</strong> Aberto, auditável e reproduzível<br>
+                <strong>Gerado em:</strong> 19/09/2025 às 19:27:38
+            </p>
+
+            <div class="footer-links">
+                <a href="https://dadosabertos.camara.leg.br/" target="_blank" class="footer-link">
+                    API Câmara
+                </a>
+                <a href="https://portaldatransparencia.gov.br/" target="_blank" class="footer-link">
+                    Portal Transparência
+                </a>
+                <a href="https://contas.tcu.gov.br/" target="_blank" class="footer-link">
+                    TCU
+                </a>
+                <a href="https://dadosabertos.tse.jus.br/" target="_blank" class="footer-link">
+                    TSE
+                </a>
+                <a href="https://www.gov.br/cgu/pt-br/acesso-a-informacao" target="_blank" class="footer-link">
+                    Lei de Acesso à Informação
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add interactivity for expanding categories
+        document.querySelectorAll('.category-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (e.target.tagName !== 'A') {
+                    this.classList.toggle('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
