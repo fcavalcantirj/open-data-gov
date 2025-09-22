@@ -86,6 +86,26 @@ def execute_insert_returning(query: str, params: Optional[tuple] = None) -> List
         return [dict(row) for row in results]
 
 
+def execute_batch_returning(query: str, values: List[tuple]) -> List[dict]:
+    """Execute batch INSERT/UPDATE with RETURNING clause"""
+    if not values:
+        return []
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        results = []
+
+        # Execute each row individually to get RETURNING results
+        for value_tuple in values:
+            cursor.execute(query, value_tuple)
+            row_result = cursor.fetchone()
+            if row_result:
+                results.append(dict(row_result))
+
+        conn.commit()
+        return results
+
+
 def get_table_count(table_name: str) -> int:
     """Get row count for table"""
     result = execute_query(f"SELECT COUNT(*) as count FROM {table_name}")

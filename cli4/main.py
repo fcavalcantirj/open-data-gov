@@ -21,6 +21,7 @@ from cli4.modules import database
 from cli4.modules.logger import CLI4Logger
 from cli4.modules.rate_limiter import CLI4RateLimiter
 from cli4.populators import CLI4PoliticianPopulator, CLI4PoliticianValidator
+from cli4.populators.financial import CLI4CounterpartsPopulator, CLI4RecordsPopulator, CLI4FinancialValidator
 
 
 def setup_cli():
@@ -64,13 +65,21 @@ Examples:
     pop_parser.add_argument('--active-only', action='store_true', default=True, help='Process only active deputies')
     pop_parser.add_argument('--resume-from', type=int, help='Resume from specific politician ID')
 
+    # Financial population commands
+    financial_parser = subparsers.add_parser('populate-financial', help='Populate financial tables')
+    financial_parser.add_argument('--phase', choices=['counterparts', 'records', 'all'], default='all',
+                                 help='Financial phase to populate')
+    financial_parser.add_argument('--politician-ids', type=int, nargs='+', help='Specific politician IDs to process')
+    financial_parser.add_argument('--start-year', type=int, help='Start year for financial data')
+    financial_parser.add_argument('--end-year', type=int, help='End year for financial data')
+
     # Status commands
     status_parser = subparsers.add_parser('status', help='Show database status')
     status_parser.add_argument('--detailed', action='store_true', help='Show detailed statistics')
 
     # Validation commands
     validate_parser = subparsers.add_parser('validate', help='Validate data tables')
-    validate_parser.add_argument('--table', choices=['politicians', 'all'], default='all',
+    validate_parser.add_argument('--table', choices=['politicians', 'financial', 'all'], default='all',
                                 help='Table to validate (default: all available tables)')
     validate_parser.add_argument('--limit', type=int, help='Limit number of records to validate')
     validate_parser.add_argument('--detailed', action='store_true', help='Show detailed validation results')
@@ -139,6 +148,37 @@ def main():
 
             print(f"\n✅ Population completed: {len(created_ids)} politicians processed")
 
+        elif args.command == 'populate-financial':
+            print("💰 FINANCIAL POPULATION WORKFLOW")
+            print("Phase 2: financial_counterparts + unified_financial_records")
+            print("=" * 50)
+
+            # Initialize components
+            logger = CLI4Logger(console=True, file=True)
+            rate_limiter = CLI4RateLimiter()
+
+            if args.phase in ['counterparts', 'all']:
+                print("\n💰 Phase 2a: Financial Counterparts")
+                counterparts_populator = CLI4CounterpartsPopulator(logger, rate_limiter)
+                counterparts_count = counterparts_populator.populate(
+                    politician_ids=args.politician_ids,
+                    start_year=args.start_year,
+                    end_year=args.end_year
+                )
+                print(f"✅ Counterparts phase completed: {counterparts_count} records")
+
+            if args.phase in ['records', 'all']:
+                print("\n📊 Phase 2b: Financial Records")
+                records_populator = CLI4RecordsPopulator(logger, rate_limiter)
+                records_count = records_populator.populate(
+                    politician_ids=args.politician_ids,
+                    start_year=args.start_year,
+                    end_year=args.end_year
+                )
+                print(f"✅ Records phase completed: {records_count} records")
+
+            print("\n🏆 Financial population workflow completed!")
+
         elif args.command == 'status':
             database.show_status()
 
@@ -168,6 +208,20 @@ def main():
                     print("👍 Validation completed - Good compliance with minor issues")
                 else:
                     print("⚠️ Validation completed - Significant improvements needed")
+
+            if args.table == 'financial' or args.table == 'all':
+                print("\n🔍 COMPREHENSIVE FINANCIAL VALIDATION")
+                print("Validating financial_counterparts + unified_financial_records")
+                print("=" * 50)
+
+                # Initialize financial validator
+                financial_validator = CLI4FinancialValidator()
+                financial_results = financial_validator.validate_all_financial()
+
+                # Export results if requested
+                if args.export:
+                    financial_validator.export_results(args.export, financial_results)
+                    print(f"📄 Financial validation results exported to: {args.export}")
 
         else:
             print(f"❌ Unknown command: {args.command}")

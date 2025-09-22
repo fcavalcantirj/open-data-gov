@@ -1,0 +1,1 @@
+- database is defined in .env file

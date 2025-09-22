@@ -534,6 +534,190 @@ class TSEClient:
 
         return matches
 
+    def get_finance_data(self, year: int) -> List[Dict]:
+        """
+        Get campaign finance data for a specific year
+        Used by CLI4 financial populators
+        """
+        print(f"=== TSE FINANCE DATA SEARCH ===")
+        print(f"Year: {year}")
+
+        # Check cache first
+        cache_key = f"finance_{year}"
+        if cache_key in self._candidate_cache:
+            print(f"  ✓ Using cached TSE finance data for {year}")
+            return self._candidate_cache[cache_key]
+
+        # Find finance packages for the year
+        finance_packages = self.search_finance_packages(year)
+
+        if not finance_packages:
+            print(f"No finance packages found for {year}")
+            return []
+
+        print(f"Found {len(finance_packages)} finance packages:")
+        for pkg in finance_packages[:3]:  # Show first 3
+            print(f"  - {pkg}")
+
+        all_finance_data = []
+
+        # Process each finance package
+        for package_name in finance_packages[:2]:  # Limit to first 2 packages
+            try:
+                print(f"Processing package: {package_name}")
+                package_info = self.get_package_info(package_name)
+                resources = package_info.get('resources', [])
+
+                # Look for finance CSV resources
+                finance_resources = []
+                for resource in resources:
+                    if resource.get('format', '').lower() in ['csv', 'txt']:
+                        name = resource.get('name', '').lower()
+                        if any(term in name for term in ['receitas', 'doadores', 'financiamento', 'prestacao']):
+                            finance_resources.append(resource)
+
+                if not finance_resources:
+                    print(f"  No finance CSV resources found in {package_name}")
+                    continue
+
+                print(f"  Found {len(finance_resources)} finance resources")
+
+                # Download and parse finance data
+                for resource in finance_resources[:1]:  # Limit to 1 resource per package
+                    try:
+                        print(f"  Downloading: {resource.get('name', 'Unknown')}")
+
+                        download_url = resource.get('url')
+                        if download_url.startswith('URL: '):
+                            download_url = download_url[5:]
+
+                        if not download_url.startswith('http'):
+                            download_url = urljoin(self.base_url, download_url)
+
+                        response = self.session.get(download_url, timeout=60)
+                        response.raise_for_status()
+
+                        # Handle ZIP files and CSV files
+                        if download_url.endswith('.zip'):
+                            finance_data = self._process_zip_finance_data(response.content)
+                        else:
+                            finance_data = self._process_csv_finance_data(response.text)
+
+                        all_finance_data.extend(finance_data)
+                        print(f"    ✓ Extracted {len(finance_data)} finance records")
+
+                    except Exception as e:
+                        print(f"    ✗ Error processing resource: {e}")
+                        continue
+
+            except Exception as e:
+                print(f"  ✗ Error processing package {package_name}: {e}")
+                continue
+
+        print(f"Total finance records extracted: {len(all_finance_data)}")
+
+        # Cache the results
+        self._candidate_cache[cache_key] = all_finance_data
+        print(f"  ✓ Cached {len(all_finance_data)} finance records")
+
+        return all_finance_data
+
+    def _process_zip_finance_data(self, zip_content: bytes) -> List[Dict]:
+        """Process ZIP file containing finance CSV data"""
+        finance_records = []
+
+        try:
+            with zipfile.ZipFile(io.BytesIO(zip_content), 'r') as zip_file:
+                for file_name in zip_file.namelist():
+                    if file_name.endswith('.csv') or file_name.endswith('.txt'):
+                        if any(term in file_name.lower() for term in ['receitas', 'doadores', 'financiamento']):
+                            with zip_file.open(file_name) as csv_file:
+                                content = csv_file.read().decode('utf-8', errors='ignore')
+                                file_records = self._process_csv_finance_data(content)
+                                finance_records.extend(file_records)
+        except Exception as e:
+            print(f"Error processing finance ZIP: {e}")
+
+        return finance_records
+
+    def _process_csv_finance_data(self, csv_content: str) -> List[Dict]:
+        """Process CSV finance data"""
+        finance_records = []
+
+        try:
+            # Try different delimiters
+            for delimiter in [';', ',', '\t']:
+                try:
+                    csv_file = io.StringIO(csv_content)
+                    reader = csv.DictReader(csv_file, delimiter=delimiter)
+
+                    sample_row = next(reader, None)
+                    if sample_row and len(sample_row) > 5:  # Good delimiter found
+                        csv_file.seek(0)
+                        reader = csv.DictReader(csv_file, delimiter=delimiter)
+
+                        for row in reader:
+                            finance_record = self._normalize_finance_data(row)
+                            if finance_record:
+                                finance_records.append(finance_record)
+                        break
+
+                except Exception:
+                    continue
+
+        except Exception as e:
+            print(f"Error processing finance CSV: {e}")
+
+        return finance_records
+
+    def _normalize_finance_data(self, raw_row: Dict[str, str]) -> Optional[Dict[str, Any]]:
+        """Normalize finance data to standard format"""
+        if not raw_row:
+            return None
+
+        # Common field mappings for TSE finance data
+        field_mappings = {
+            'nr_cpf_candidato': ['NR_CPF_CANDIDATO', 'CPF_CANDIDATO'],
+            'cpf_candidato': ['NR_CPF_CANDIDATO', 'CPF_CANDIDATO'],
+            'nr_cpf_cnpj_doador': ['NR_CPF_CNPJ_DOADOR', 'CNPJ_CPF_DOADOR'],
+            'cnpj_cpf_doador': ['NR_CPF_CNPJ_DOADOR', 'CNPJ_CPF_DOADOR'],
+            'nm_doador': ['NM_DOADOR', 'NOME_DOADOR'],
+            'nome_doador': ['NM_DOADOR', 'NOME_DOADOR'],
+            'vr_receita': ['VR_RECEITA', 'VALOR_RECEITA'],
+            'valor_receita': ['VR_RECEITA', 'VALOR_RECEITA'],
+            'dt_receita': ['DT_RECEITA', 'DATA_RECEITA'],
+            'data_receita': ['DT_RECEITA', 'DATA_RECEITA'],
+            'ds_especie_receita': ['DS_ESPECIE_RECEITA', 'ESPECIE_RECEITA'],
+            'descricao_receita': ['DS_ESPECIE_RECEITA', 'ESPECIE_RECEITA'],
+            'sq_receita': ['SQ_RECEITA', 'SEQUENCIAL_RECEITA']
+        }
+
+        finance_record = {}
+
+        # First, preserve ALL original TSE fields
+        for original_field, value in raw_row.items():
+            if value and value.strip():
+                finance_record[original_field.lower()] = value.strip()
+
+        # Then add normalized fields for convenience
+        for standard_field, possible_fields in field_mappings.items():
+            value = None
+            for field in possible_fields:
+                if field in raw_row and raw_row[field]:
+                    value = raw_row[field].strip()
+                    break
+
+            if value:
+                finance_record[standard_field] = value
+
+        # Must have at least amount and candidate CPF
+        if not (finance_record.get('vr_receita') or finance_record.get('valor_receita')):
+            return None
+        if not (finance_record.get('nr_cpf_candidato') or finance_record.get('cpf_candidato')):
+            return None
+
+        return finance_record
+
     def get_deputy_electoral_history(self, deputy_name: str, deputy_state: str) -> Dict[str, Any]:
         """
         Get complete electoral history for a deputy - implements correlation strategy
