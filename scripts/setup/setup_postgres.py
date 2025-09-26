@@ -449,6 +449,27 @@ def create_unified_postgres_database():
             source_record_id VARCHAR(50),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
+        '''),
+        ('vendor_sanctions', '''
+        CREATE TABLE IF NOT EXISTS vendor_sanctions (
+            id SERIAL PRIMARY KEY,
+            cnpj_cpf VARCHAR(14) NOT NULL,
+            entity_name VARCHAR(500),
+            sanction_type VARCHAR(100),
+            sanction_description TEXT,
+            sanction_start_date DATE,
+            sanction_end_date DATE,
+            sanctioning_agency VARCHAR(255),
+            sanctioning_state VARCHAR(10),
+            sanctioning_process VARCHAR(100),
+            penalty_amount DECIMAL(15,2),
+            is_active BOOLEAN DEFAULT TRUE,
+            data_source VARCHAR(50) DEFAULT 'PORTAL_TRANSPARENCIA',
+            api_reference_id VARCHAR(100),
+            verification_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
         ''')
     ]
 
@@ -466,6 +487,8 @@ def create_unified_postgres_database():
         "CREATE INDEX IF NOT EXISTS idx_financial_counterpart_cnpj ON unified_financial_records(counterpart_cnpj_cpf)",
         "CREATE INDEX IF NOT EXISTS idx_counterparts_cnpj ON financial_counterparts(cnpj_cpf)",
         "CREATE INDEX IF NOT EXISTS idx_networks_politician ON unified_political_networks(politician_id, network_type)",
+        "CREATE INDEX IF NOT EXISTS idx_sanctions_cnpj ON vendor_sanctions(cnpj_cpf)",
+        "CREATE INDEX IF NOT EXISTS idx_sanctions_active ON vendor_sanctions(is_active)",
         "CREATE INDEX IF NOT EXISTS idx_wealth_politician_year ON unified_wealth_tracking(politician_id, year)",
         "CREATE INDEX IF NOT EXISTS idx_career_politician ON politician_career_history(politician_id)",
         "CREATE INDEX IF NOT EXISTS idx_events_politician ON politician_events(politician_id)",
@@ -481,7 +504,8 @@ def create_unified_postgres_database():
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_events_unique ON politician_events(politician_id, event_id)",
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_assets_unique ON politician_assets(politician_id, declaration_year, asset_sequence)",
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_professional_unique ON politician_professional_background(politician_id, profession_type, profession_name, year_start)",
-        "CREATE UNIQUE INDEX IF NOT EXISTS idx_wealth_tracking_unique ON unified_wealth_tracking(politician_id, year)"
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_wealth_tracking_unique ON unified_wealth_tracking(politician_id, year)",
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_sanctions_unique ON vendor_sanctions(cnpj_cpf, sanction_type, sanction_start_date, sanctioning_agency)"
     ]
 
     for index_sql in indexes:
@@ -501,7 +525,7 @@ def create_unified_postgres_database():
     cursor.close()
     conn.close()
 
-    print(f"\n🎯 SUCCESS: PostgreSQL database created with all 9 unified schema tables!")
+    print(f"\n🎯 SUCCESS: PostgreSQL database created with all 10 unified schema tables!")
     print("\nTables created:")
     print("1. ✅ unified_politicians (Core entity with 100% field mapping)")
     print("2. ✅ unified_financial_records (All transactions)")
@@ -512,6 +536,7 @@ def create_unified_postgres_database():
     print("7. ✅ politician_events (Parliamentary activity)")
     print("8. ✅ politician_assets (Individual TSE assets)")
     print("9. ✅ politician_professional_background (Professions and occupations)")
+    print("10. ✅ vendor_sanctions (Portal da Transparência sanctions)")
     print("\n📊 Database ready for data population following the DATA_POPULATION_GUIDE.md")
 
 if __name__ == "__main__":

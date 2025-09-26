@@ -36,6 +36,7 @@ def recreate_all_tables():
         "DROP TABLE IF EXISTS unified_political_networks CASCADE",
         "DROP TABLE IF EXISTS unified_electoral_records CASCADE",
         "DROP TABLE IF EXISTS unified_financial_records CASCADE",
+        "DROP TABLE IF EXISTS vendor_sanctions CASCADE",
         "DROP TABLE IF EXISTS financial_counterparts CASCADE",
         "DROP TABLE IF EXISTS unified_politicians CASCADE"
     ]
@@ -486,6 +487,28 @@ def recreate_all_tables():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             CONSTRAINT unique_profession UNIQUE (politician_id, profession_type, profession_name, year_start)
         )
+        '''),
+        ('vendor_sanctions', '''
+        CREATE TABLE vendor_sanctions (
+            id SERIAL PRIMARY KEY,
+            cnpj_cpf VARCHAR(14) NOT NULL,
+            entity_name VARCHAR(500),
+            sanction_type VARCHAR(100),
+            sanction_description TEXT,
+            sanction_start_date DATE,
+            sanction_end_date DATE,
+            sanctioning_agency VARCHAR(255),
+            sanctioning_state VARCHAR(10),
+            sanctioning_process VARCHAR(100),
+            penalty_amount DECIMAL(15,2),
+            is_active BOOLEAN DEFAULT TRUE,
+            data_source VARCHAR(50) DEFAULT 'PORTAL_TRANSPARENCIA',
+            api_reference_id VARCHAR(100),
+            verification_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT unique_sanction UNIQUE (cnpj_cpf, sanction_type, sanction_start_date, sanctioning_agency)
+        )
         ''')
     ]
 
@@ -506,7 +529,9 @@ def recreate_all_tables():
         "CREATE INDEX idx_career_politician ON politician_career_history(politician_id)",
         "CREATE INDEX idx_events_politician ON politician_events(politician_id)",
         "CREATE INDEX idx_assets_politician_year ON politician_assets(politician_id, declaration_year)",
-        "CREATE INDEX idx_professional_politician ON politician_professional_background(politician_id)"
+        "CREATE INDEX idx_professional_politician ON politician_professional_background(politician_id)",
+        "CREATE INDEX idx_sanctions_cnpj ON vendor_sanctions(cnpj_cpf)",
+        "CREATE INDEX idx_sanctions_active ON vendor_sanctions(is_active)"
     ]
 
     for index_sql in indexes:
@@ -530,6 +555,7 @@ def recreate_all_tables():
     print("7. ✅ politician_events - UNIQUE on (politician_id, event_id)")
     print("8. ✅ politician_assets - UNIQUE on (politician_id, declaration_year, asset_sequence)")
     print("9. ✅ politician_professional_background - UNIQUE on (politician_id, profession_type, profession_name, year_start)")
+    print("10. ✅ vendor_sanctions - UNIQUE on (cnpj_cpf, sanction_type, sanction_start_date, sanctioning_agency)")
 
     print("\n🧪 READY FOR TESTING!")
     print("Run these commands twice to test duplicate prevention:")

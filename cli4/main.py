@@ -28,6 +28,7 @@ from cli4.populators.career import CareerPopulator, CareerValidator
 from cli4.populators.assets import AssetsPopulator, AssetsValidator
 from cli4.populators.professional import ProfessionalPopulator, ProfessionalValidator
 from cli4.populators.events import EventsPopulator, EventsValidator
+from cli4.populators.sanctions import SanctionsPopulator, SanctionsValidator
 
 
 def setup_cli():
@@ -68,6 +69,10 @@ Examples:
   # Populate parliamentary events (NEW!)
   python cli4/main.py populate-events --politician-ids 1 2 3
   python cli4/main.py populate-events --days-back 180
+
+  # Populate vendor sanctions (NEW!)
+  python cli4/main.py populate-sanctions --max-pages 100
+  python cli4/main.py populate-sanctions --update-existing
 
   # Post-process: Calculate aggregate career fields (NEW!)
   python cli4/main.py post-process --fields electoral
@@ -152,13 +157,18 @@ Examples:
     events_parser.add_argument('--politician-ids', type=int, nargs='+', help='Specific politician IDs to process')
     events_parser.add_argument('--days-back', type=int, default=365, help='Days back to fetch events (default: 365)')
 
+    # Sanctions population
+    sanctions_parser = subparsers.add_parser('populate-sanctions', help='Populate vendor sanctions table (corruption detection)')
+    sanctions_parser.add_argument('--max-pages', type=int, default=2000, help='Maximum pages to fetch (default: 2000, ~30k records)')
+    sanctions_parser.add_argument('--update-existing', action='store_true', help='Update existing records instead of skipping')
+
     # Status commands
     status_parser = subparsers.add_parser('status', help='Show database status')
     status_parser.add_argument('--detailed', action='store_true', help='Show detailed statistics')
 
     # Validation commands
     validate_parser = subparsers.add_parser('validate', help='Validate data tables')
-    validate_parser.add_argument('--table', choices=['politicians', 'financial', 'electoral', 'networks', 'wealth', 'career', 'assets', 'professional', 'events', 'all'], default='all',
+    validate_parser.add_argument('--table', choices=['politicians', 'financial', 'electoral', 'networks', 'wealth', 'career', 'assets', 'professional', 'events', 'sanctions', 'all'], default='all',
                                 help='Table to validate (default: all available tables)')
     validate_parser.add_argument('--limit', type=int, help='Limit number of records to validate')
     validate_parser.add_argument('--detailed', action='store_true', help='Show detailed validation results')
@@ -378,6 +388,22 @@ def main():
 
             print(f"\n🏆 Events population completed: {events_count} records")
 
+        elif args.command == 'populate-sanctions':
+            print("⚠️  VENDOR SANCTIONS POPULATION")
+            print("Portal da Transparência CEIS sanctions for corruption detection")
+            print("=" * 60)
+
+            # Initialize sanctions populator
+            sanctions_populator = SanctionsPopulator(logger, rate_limiter)
+
+            # Run sanctions population
+            sanctions_count = sanctions_populator.populate(
+                max_pages=args.max_pages,
+                update_existing=args.update_existing
+            )
+
+            print(f"\n🏆 Sanctions population completed: {sanctions_count} records")
+
         elif args.command == 'post-process':
             print("📊 POST-PROCESSING: CALCULATE AGGREGATE CAREER FIELDS")
             print("Computing electoral success rates, career timelines, and financial summaries")
@@ -451,6 +477,11 @@ def main():
                 DependencyChecker.print_dependency_warning(
                     required_steps=["politicians", "events"],
                     current_step="PARLIAMENTARY EVENTS VALIDATION"
+                )
+            elif args.table == 'sanctions':
+                DependencyChecker.print_dependency_warning(
+                    required_steps=["sanctions"],
+                    current_step="VENDOR SANCTIONS VALIDATION"
                 )
 
             # Determine what to validate
@@ -641,6 +672,27 @@ def main():
                     print("👍 Events validation completed - Good compliance with minor issues")
                 else:
                     print("⚠️ Events validation completed - Significant improvements needed")
+
+            if args.table == 'sanctions' or args.table == 'all':
+                print("\n🔍 COMPREHENSIVE SANCTIONS VALIDATION")
+                print("Validating vendor_sanctions with corruption detection readiness")
+                print("=" * 60)
+
+                # Initialize sanctions validator
+                sanctions_validator = SanctionsValidator()
+                sanctions_results = sanctions_validator.validate_all_sanctions(limit=args.limit)
+
+                # Export results if requested
+                if args.export:
+                    print(f"📄 Sanctions validation results logged")
+
+                # Show completion message
+                if sanctions_results['compliance_score'] >= 90:
+                    print("🏆 Sanctions validation completed - Excellent compliance! Ready for corruption detection")
+                elif sanctions_results['compliance_score'] >= 70:
+                    print("👍 Sanctions validation completed - Good compliance with minor issues")
+                else:
+                    print("⚠️ Sanctions validation completed - Significant improvements needed")
 
         else:
             print(f"❌ Unknown command: {args.command}")

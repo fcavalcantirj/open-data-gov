@@ -178,12 +178,15 @@ Steps (512 politicians):
 5️⃣ Career History (~1-2 hours) 📋 NEW!
 6️⃣ Asset Declarations (~1-2 hours) 🏛️ NEW!
 7️⃣ Professional Background (~30-45 min) 💼 NEW!
-8️⃣ Post-Processing (~30 min) 📊 CRITICAL!
-9️⃣ Wealth Population (~1-2 hours) 💎 OPTIMIZED!
-🔟 Full Validation (~1-3 min) ✅ ALWAYS LAST
+8️⃣ Parliamentary Events (~1-2 hours) 🏛️ NEW!
+9️⃣ Vendor Sanctions (~1 hour) ⚠️ CORRUPTION DETECTION!
+🔟 Post-Processing (~30 min) 📊 CRITICAL!
+1️⃣1️⃣ Wealth Population (~1-2 hours) 💎 OPTIMIZED!
+1️⃣2️⃣ Full Validation (~1-3 min) ✅ ALWAYS LAST
 
-⏰ Total estimated: 36-46 HOURS
-💡 MUST use tmux/screen - this will run for DAYS!"
+⏰ Total estimated: 37-47 HOURS
+💡 MUST use tmux/screen - this will run for DAYS!
+🎯 NEW: 21,795 sanctions for corruption detection!"
 
 # Step 1: Politicians Population
 run_step "POLITICIANS POPULATION" "python cli4/main.py populate"
@@ -209,13 +212,16 @@ run_step "PROFESSIONAL BACKGROUND POPULATION" "python cli4/main.py populate-prof
 # Step 8: Parliamentary Events Population
 run_step "PARLIAMENTARY EVENTS POPULATION" "python cli4/main.py populate-events"
 
-# Step 9: Post-Processing (MUST RUN BEFORE WEALTH!)
+# Step 9: Vendor Sanctions Population (NEW! Corruption Detection)
+run_step "VENDOR SANCTIONS POPULATION" "python cli4/main.py populate-sanctions --max-pages 1500"
+
+# Step 10: Post-Processing (MUST RUN BEFORE WEALTH!)
 run_step "POST-PROCESSING" "python cli4/main.py post-process"
 
-# Step 10: Wealth Population (DEPENDS ON POST-PROCESSING!)
+# Step 11: Wealth Population (DEPENDS ON POST-PROCESSING!)
 run_step "WEALTH POPULATION" "python cli4/main.py populate-wealth"
 
-# Step 11: Full Validation (ALWAYS LAST)
+# Step 12: Full Validation (ALWAYS LAST)
 run_step "FULL VALIDATION" "python cli4/main.py validate"
 
 # Calculate total duration
@@ -251,9 +257,15 @@ End Time: $(date +'%H:%M')
 ✅ Asset declarations populated (NEW!)
 ✅ Professional background populated (NEW!)
 ✅ Parliamentary events populated (NEW!)
+✅ Vendor sanctions populated (NEW! 21,795 records)
 ✅ Post-processing completed (aggregates)
 ✅ Wealth tracking populated (optimized!)
 ✅ Full validation passed (ALWAYS LAST)
+
+🎯 CORRUPTION DETECTION READY:
+✅ 21,795 sanctions for vendor cross-referencing
+✅ Enhanced MVP with corruption validation
+✅ Fast local CNPJ lookups enabled
 
 🗄️ Complete logs available in system
 📈 Data pipeline ready for analysis

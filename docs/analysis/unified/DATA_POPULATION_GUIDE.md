@@ -11,7 +11,7 @@ This guide documents the complete field mapping between Brazilian government API
 
 ## 🚀 CLI4 POPULATION COMMANDS
 
-### Full Population Workflow (36-46 hours total)
+### Full Population Workflow (37-47 hours total)
 ```bash
 # Option 1: Use automated script with WhatsApp notifications
 ./run_full_population.sh
@@ -25,6 +25,7 @@ python cli4/main.py populate-career       # ~1-2 hours (NEW!)
 python cli4/main.py populate-assets       # ~1-2 hours (NEW!)
 python cli4/main.py populate-professional # ~30-45 minutes (NEW!)
 python cli4/main.py populate-events       # ~45-60 minutes (NEW!)
+python cli4/main.py populate-sanctions    # ~1 hour (NEW! CORRUPTION DETECTION)
 python cli4/main.py post-process          # ~30 minutes (MUST RUN BEFORE WEALTH!)
 python cli4/main.py populate-wealth       # ~1-2 hours (DEPENDS ON POST-PROCESS!)
 python cli4/main.py validate              # ~1-3 minutes (ALWAYS LAST)
@@ -41,6 +42,7 @@ python cli4/main.py validate              # ~1-3 minutes (ALWAYS LAST)
 | `populate-assets` | 1-2 hours | ~200MB | **Individual TSE asset declarations with detailed tracking** |
 | `populate-professional` | 30-45 min | ~50MB | **Professional background from Deputados API** |
 | `populate-events` | 45-60 min | ~60MB | **Parliamentary events with smart date range calculation** |
+| `populate-sanctions` | 1 hour | ~120MB | **Portal Transparência sanctions for corruption detection (21,795 records)** |
 | `populate-wealth` | 1-2 hours | ~2GB | **TSE asset declarations with intelligent year selection** |
 | `post-process` | 30 min | ~40MB | Calculate aggregate metrics |
 | `validate` | 1-3 min | ~40MB | Data integrity validation (ALWAYS LAST) |
