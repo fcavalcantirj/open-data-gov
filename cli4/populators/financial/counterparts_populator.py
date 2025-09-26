@@ -1,11 +1,9 @@
 """
 CLI4 Financial Counterparts Populator
-Populate financial_counterparts table (Phase 2a)
+Phase 2a: Build vendor/donor registry from Deputados + TSE
 """
 
-import requests
-import time
-from typing import Dict, List, Set, Tuple, Optional
+from typing import Dict, List, Set, Tuple
 from cli4.modules import database
 from cli4.modules.logger import CLI4Logger
 from cli4.modules.rate_limiter import CLI4RateLimiter
@@ -13,17 +11,15 @@ from src.clients.tse_client import TSEClient
 
 
 class CLI4CounterpartsPopulator:
-    """Populate financial_counterparts table with vendors and donors"""
+    """Populate financial_counterparts table with vendor/donor registry"""
 
     def __init__(self, logger: CLI4Logger, rate_limiter: CLI4RateLimiter):
         self.logger = logger
         self.rate_limiter = rate_limiter
-        self.camara_base = "https://dadosabertos.camara.leg.br/api/v2"
         self.tse_client = TSEClient()
 
-    def populate(self, politician_ids: Optional[List[int]] = None,
-                 start_year: Optional[int] = None,
-                 end_year: Optional[int] = None) -> int:
+    def populate(self, politician_ids: List[int] = None, start_year: int = None,
+                end_year: int = None) -> int:
         """Populate financial counterparts table"""
 
         print("💰 FINANCIAL COUNTERPARTS POPULATION")
@@ -35,23 +31,24 @@ class CLI4CounterpartsPopulator:
         if politician_ids:
             politicians = self._get_politicians_by_ids(politician_ids)
         else:
-            politicians = database.execute_query("SELECT id, deputy_id FROM unified_politicians")
+            politicians = database.execute_query(
+                "SELECT id, deputy_id, cpf, nome_civil FROM unified_politicians"
+            )
 
         print(f"📋 Processing {len(politicians)} politicians")
 
         # Set date range
         if not start_year:
-            start_year = 2019  # Default: last 5 years
+            start_year = 2019
         if not end_year:
             end_year = 2024
 
         print(f"📅 Date range: {start_year} - {end_year}")
         print()
 
-        # Collect all unique counterparts
-        all_counterparts: Set[Tuple[str, str, str]] = set()
+        all_counterparts = set()
 
-        # PHASE 1: Extract from Deputados expenses
+        # PHASE 1: Extract from Deputados expenses (proven method)
         print("🏛️ Extracting from Deputados expenses...")
         for i, politician in enumerate(politicians, 1):
             print(f"  [{i}/{len(politicians)}] Deputy {politician['deputy_id']}")
@@ -63,8 +60,7 @@ class CLI4CounterpartsPopulator:
 
         print(f"  ✅ Found {len(all_counterparts)} unique counterparts from Deputados")
 
-        # PHASE 2: Extract from TSE campaign finance
-        print("\n🗳️ Extracting from TSE campaign finance...")
+        # PHASE 2: Extract from TSE campaign finance (SPACE ENGINEER FIX)
         tse_counterparts = self._extract_tse_counterparts(
             politicians, start_year, end_year
         )
@@ -82,43 +78,61 @@ class CLI4CounterpartsPopulator:
     def _get_politicians_by_ids(self, politician_ids: List[int]) -> List[Dict]:
         """Get politicians by specific IDs"""
         placeholders = ','.join(['%s'] * len(politician_ids))
-        query = f"SELECT id, deputy_id FROM unified_politicians WHERE id IN ({placeholders})"
+        query = f"SELECT id, deputy_id, cpf, nome_civil FROM unified_politicians WHERE id IN ({placeholders})"
         return database.execute_query(query, tuple(politician_ids))
 
     def _extract_deputados_counterparts(self, deputy_id: int, start_year: int,
-                                       end_year: int) -> Set[Tuple[str, str, str]]:
-        """Extract counterparts from Deputados expenses"""
+                                      end_year: int) -> Set[Tuple[str, str, str]]:
+        """Extract counterparts from Deputados expenses API"""
         counterparts = set()
 
         for year in range(start_year, end_year + 1):
-            wait_time = self.rate_limiter.wait_if_needed('camara')
-
-            start_time = time.time()
-            url = f"{self.camara_base}/deputados/{deputy_id}/despesas"
-            params = {'ano': year, 'ordem': 'ASC', 'ordenarPor': 'mes'}
-
             try:
-                response = requests.get(url, params=params, timeout=30)
-                response_time = time.time() - start_time
+                # Fetch expenses for the year
+                expenses_url = f"/deputados/{deputy_id}/despesas"
+                params = {'ano': year, 'itens': 100, 'ordem': 'ASC', 'ordenarPor': 'dataDocumento'}
 
-                if response.status_code == 200:
-                    self.logger.log_api_call('camara', f'/deputados/{deputy_id}/despesas', 'success', response_time)
+                response_time = 0
+                success = False
 
-                    data = response.json()
-                    expenses = data.get('dados', [])
+                try:
+                    import requests
+                    import time
+                    start_time = time.time()
 
-                    for expense in expenses:
-                        cnpj_cpf = expense.get('cnpjCpfFornecedor')
-                        name = expense.get('nomeFornecedor')
+                    response = requests.get(
+                        f"https://dadosabertos.camara.leg.br/api/v2{expenses_url}",
+                        params=params,
+                        timeout=30
+                    )
+                    response_time = time.time() - start_time
 
-                        if cnpj_cpf and name:
-                            # Clean CNPJ/CPF (remove formatting)
-                            cnpj_cpf_clean = ''.join(filter(str.isdigit, cnpj_cpf))
-                            if len(cnpj_cpf_clean) in [11, 14]:  # Valid CPF or CNPJ length
-                                counterparts.add((cnpj_cpf_clean, name.strip(), 'DEPUTADOS_VENDOR'))
+                    if response.status_code == 200:
+                        data = response.json()
+                        expenses = data.get('dados', [])
+                        success = True
 
-                else:
-                    self.logger.log_api_call('camara', f'/deputados/{deputy_id}/despesas', 'error', response_time)
+                        # Extract counterparts
+                        for expense in expenses:
+                            cnpj_cpf = expense.get('cnpjCpfFornecedor', '').strip()
+                            name = expense.get('nomeFornecedor', '').strip()
+
+                            if cnpj_cpf and name:
+                                # Clean CNPJ/CPF (remove formatting)
+                                cnpj_cpf_clean = ''.join(filter(str.isdigit, cnpj_cpf))
+                                if len(cnpj_cpf_clean) in [11, 14]:  # Valid CPF or CNPJ
+                                    counterparts.add((cnpj_cpf_clean, name, 'DEPUTADOS_VENDOR'))
+
+                        self.logger.log_api_call('camara', expenses_url, 'success', response_time)
+
+                    else:
+                        self.logger.log_api_call('camara', expenses_url, 'error', response_time)
+
+                except Exception as e:
+                    self.logger.log_api_call('camara', expenses_url, 'error', response_time)
+
+                # Rate limiting
+                self.rate_limiter.wait_if_needed('camara')
 
             except Exception as e:
                 print(f"    ⚠️ Error fetching {year} expenses: {e}")
@@ -128,130 +142,168 @@ class CLI4CounterpartsPopulator:
 
     def _extract_tse_counterparts(self, politicians: List[Dict], start_year: int,
                                  end_year: int) -> Set[Tuple[str, str, str]]:
-        """Extract counterparts from TSE campaign finance"""
+        """Extract counterparts from TSE campaign finance - SPACE ENGINEER PRECISION FIX"""
+        print("\n🗳️ Extracting from TSE campaign finance...")
+        print("🚀 MEMORY-EFFICIENT: Processing one politician at a time")
+
         counterparts = set()
 
-        # Get CPFs from politicians for TSE correlation
-        politician_cpfs = set()
-        for politician in politicians:
-            cpf_result = database.execute_query(
-                "SELECT cpf FROM unified_politicians WHERE id = %s",
-                (politician['id'],)
-            )
-            if cpf_result and cpf_result[0]['cpf']:
-                politician_cpfs.add(cpf_result[0]['cpf'])
+        # Calculate campaign years
+        campaign_years = self._calculate_campaign_years(start_year, end_year)
+        tse_data_types = ['receitas', 'despesas_contratadas']  # Only types with donor/vendor data
 
-        print(f"  🔍 Searching TSE finance data for {len(politician_cpfs)} politicians")
+        print(f"  📅 Campaign years: {campaign_years}")
+        print(f"  📊 TSE data types: {tse_data_types}")
+        print(f"  👥 Processing {len(politicians)} politicians individually...")
 
-        # Search TSE finance years
-        for year in range(start_year, end_year + 1):
-            try:
-                print(f"    → Processing TSE {year}...")
+        total_counterparts = 0
 
-                # Get TSE finance data for the year
-                finance_data = self.tse_client.get_finance_data(year)
-
-                if finance_data:
-                    year_counterparts = 0
-                    for record in finance_data:
-                        # Check if this record relates to our politicians
-                        candidate_cpf = record.get('nr_cpf_candidato') or record.get('cpf_candidato')
-                        if candidate_cpf in politician_cpfs:
-
-                            cnpj_cpf = record.get('nr_cpf_cnpj_doador') or record.get('cnpj_cpf_doador')
-                            name = record.get('nm_doador') or record.get('nome_doador')
-
-                            if cnpj_cpf and name:
-                                # Clean CNPJ/CPF
-                                cnpj_cpf_clean = ''.join(filter(str.isdigit, cnpj_cpf))
-                                if len(cnpj_cpf_clean) in [11, 14]:
-                                    counterparts.add((cnpj_cpf_clean, name.strip(), 'TSE_DONOR'))
-                                    year_counterparts += 1
-
-                    print(f"      ✅ Found {year_counterparts} counterparts in {year}")
-                else:
-                    print(f"      ❌ No TSE finance data for {year}")
-
-            except Exception as e:
-                print(f"    ⚠️ Error processing TSE {year}: {e}")
+        for i, politician in enumerate(politicians, 1):
+            politician_cpf = politician.get('cpf')
+            if not politician_cpf:
                 continue
+
+            print(f"\n    👤 [{i}/{len(politicians)}] {politician.get('nome_civil', 'Unknown')[:30]}...")
+            print(f"       CPF: {politician_cpf}")
+
+            politician_counterparts = 0
+
+            for year in campaign_years:
+                for data_type in tse_data_types:
+                    try:
+                        print(f"         🔍 {year} {data_type}...")
+
+                        # PRECISION: Use proven streaming method (same as records_populator)
+                        finance_data = self.tse_client.get_finance_data_streaming(
+                            year, data_type, politician_cpf
+                        )
+
+                        if finance_data:
+                            type_counterparts = 0
+                            for record in finance_data:
+                                # Extract counterpart information
+                                cnpj_cpf = (record.get('nr_cpf_cnpj_doador') or
+                                          record.get('cnpj_cpf_doador') or
+                                          record.get('NR_CPF_CNPJ_DOADOR'))
+
+                                name = (record.get('nm_doador') or
+                                       record.get('nome_doador') or
+                                       record.get('NM_DOADOR'))
+
+                                if cnpj_cpf and name:
+                                    # Clean CNPJ/CPF
+                                    cnpj_cpf_clean = ''.join(filter(str.isdigit, str(cnpj_cpf)))
+                                    if len(cnpj_cpf_clean) in [11, 14]:
+                                        counterparts.add((cnpj_cpf_clean, name.strip(), 'TSE_DONOR'))
+                                        type_counterparts += 1
+
+                            if type_counterparts > 0:
+                                print(f"           ✅ {type_counterparts} counterparts")
+                                politician_counterparts += type_counterparts
+
+                        # Rate limiting between API calls
+                        self.rate_limiter.wait_if_needed('tse')
+
+                    except Exception as e:
+                        print(f"           ⚠️ Error: {e}")
+                        continue
+
+            if politician_counterparts > 0:
+                print(f"       ✅ Total: {politician_counterparts} counterparts")
+                total_counterparts += politician_counterparts
+            else:
+                print(f"       ⚪ No TSE counterparts found")
+
+        print(f"\n  🎯 TSE EXTRACTION COMPLETE")
+        print(f"     Total TSE counterparts: {total_counterparts}")
+        print(f"     Unique counterparts: {len(counterparts)}")
 
         return counterparts
 
-    def _bulk_insert_counterparts(self, counterparts: Set[Tuple[str, str, str]]) -> int:
-        """Bulk insert counterparts with conflict resolution"""
+    def _calculate_campaign_years(self, start_year: int, end_year: int) -> List[int]:
+        """Calculate campaign finance years around elections"""
+        election_years = [2018, 2022]  # Major federal elections
+        campaign_years = []
 
+        for election_year in election_years:
+            if start_year <= election_year <= end_year:
+                campaign_years.append(election_year)
+                # Add pre-campaign year
+                if start_year <= election_year - 1 <= end_year:
+                    campaign_years.append(election_year - 1)
+
+        return sorted(list(set(campaign_years)))
+
+    def _bulk_insert_counterparts(self, counterparts: Set[Tuple[str, str, str]]) -> int:
+        """Bulk insert counterparts into database"""
         if not counterparts:
             return 0
 
-        # Prepare batch data
-        batch_data = []
-        for cnpj_cpf, name, source_type in counterparts:
-            record = {
-                'cnpj_cpf': cnpj_cpf,
-                'name': name,
-                'normalized_name': self._normalize_name(name),
-                'entity_type': self._classify_entity_type(cnpj_cpf),
-                'cnpj_validated': False,
-                'sanctions_checked': False
-            }
-            batch_data.append(record)
+        # Convert to dict to deduplicate by CNPJ/CPF (keep latest name)
+        counterparts_dict = {}
+        for cnpj_cpf, name, source in counterparts:
+            counterparts_dict[cnpj_cpf] = (name, source)
 
-        # Batch insert with ON CONFLICT handling
-        inserted_count = 0
+        # Convert to list for batch processing
+        counterparts_list = [(cnpj_cpf, name, source) for cnpj_cpf, (name, source) in counterparts_dict.items()]
         batch_size = 100
 
-        for i in range(0, len(batch_data), batch_size):
-            batch = batch_data[i:i + batch_size]
+        total_inserted = 0
+        for i in range(0, len(counterparts_list), batch_size):
+            batch = counterparts_list[i:i + batch_size]
 
-            try:
-                # Build bulk insert query
-                fields = batch[0].keys()
-                placeholders = ', '.join(['%s'] * len(fields))
-                fields_str = ', '.join(fields)
+            # Prepare batch values
+            values = []
+            for cnpj_cpf, name, source in batch:
+                # Determine entity type
+                entity_type = 'COMPANY' if len(cnpj_cpf) == 14 else 'INDIVIDUAL'
+
+                # Normalize name
+                normalized_name = name.upper().strip()
+
+                values.append((cnpj_cpf, name, normalized_name, entity_type, source))
+
+            # Bulk insert with conflict resolution
+            if values:
+                placeholders = ','.join(['(%s,%s,%s,%s,%s)'] * len(values))
+                flat_values = [item for sublist in values for item in sublist]
 
                 query = f"""
-                    INSERT INTO financial_counterparts ({fields_str})
-                    VALUES ({placeholders})
+                    INSERT INTO financial_counterparts
+                    (cnpj_cpf, name, normalized_name, entity_type, source_system)
+                    VALUES {placeholders}
                     ON CONFLICT (cnpj_cpf) DO UPDATE SET
                         name = EXCLUDED.name,
                         normalized_name = EXCLUDED.normalized_name,
+                        source_system = EXCLUDED.source_system,
                         updated_at = CURRENT_TIMESTAMP
-                    RETURNING id
                 """
 
-                # Prepare values
-                values = []
-                for record in batch:
-                    values.append(tuple(record[field] for field in fields))
+                try:
+                    # Use execute_update for INSERT operations
+                    affected_rows = database.execute_update(query, flat_values)
+                    total_inserted += len(values)
+                    print(f"    ✅ Processed batch {i//batch_size + 1}: {len(values)} records")
 
-                # Execute batch
-                results = database.execute_batch_returning(query, values)
-                inserted_count += len(results)
+                except Exception as e:
+                    print(f"    ❌ Batch insert error: {e}")
+                    print(f"      Trying individual inserts...")
+                    # Try one by one to identify problematic records
+                    for cnpj_cpf, name, normalized_name, entity_type, source in values:
+                        try:
+                            single_query = """
+                                INSERT INTO financial_counterparts
+                                (cnpj_cpf, name, normalized_name, entity_type, source_system)
+                                VALUES (%s, %s, %s, %s, %s)
+                                ON CONFLICT (cnpj_cpf) DO UPDATE SET
+                                    name = EXCLUDED.name,
+                                    normalized_name = EXCLUDED.normalized_name,
+                                    source_system = EXCLUDED.source_system,
+                                    updated_at = CURRENT_TIMESTAMP
+                            """
+                            database.execute_update(single_query, (cnpj_cpf, name, normalized_name, entity_type, source))
+                            total_inserted += 1
+                        except Exception as single_error:
+                            print(f"      ❌ Failed to insert {cnpj_cpf}: {single_error}")
 
-                print(f"    ✅ Processed batch {i//batch_size + 1}: {len(results)} records")
-
-            except Exception as e:
-                print(f"    ❌ Error in batch {i//batch_size + 1}: {e}")
-                continue
-
-        return inserted_count
-
-    def _normalize_name(self, name: str) -> str:
-        """Normalize name for matching"""
-        if not name:
-            return ''
-
-        import unicodedata
-        normalized = unicodedata.normalize('NFD', name)
-        ascii_name = ''.join(c for c in normalized if unicodedata.category(c) != 'Mn')
-        return ascii_name.upper().strip()
-
-    def _classify_entity_type(self, cnpj_cpf: str) -> str:
-        """Classify entity type based on identifier length"""
-        if len(cnpj_cpf) == 14:
-            return 'COMPANY'
-        elif len(cnpj_cpf) == 11:
-            return 'INDIVIDUAL'
-        else:
-            return 'UNKNOWN'
+        return total_inserted

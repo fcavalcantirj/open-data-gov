@@ -143,7 +143,7 @@ CREATE TABLE unified_financial_records (
     source_url VARCHAR(500) COMMENT 'Document URL - from deputy_expenses.url_documento',
 
     -- TRANSACTION CLASSIFICATION
-    transaction_type VARCHAR(50) NOT NULL COMMENT 'PARLIAMENTARY_EXPENSE, CAMPAIGN_DONATION, CAMPAIGN_EXPENSE',
+    transaction_type VARCHAR(50) NOT NULL COMMENT 'PARLIAMENTARY_EXPENSE, CAMPAIGN_DONATION, CAMPAIGN_EXPENSE_CONTRACTED, CAMPAIGN_EXPENSE_PAID, CAMPAIGN_DONATION_ORIGINAL',
     transaction_category VARCHAR(255) COMMENT 'Category - deputy_expenses.tipo_despesa or tse_campaign_finance.descricao_especie',
 
     -- FINANCIAL DETAILS (Raw Values Only - No Calculations)
@@ -160,7 +160,9 @@ CREATE TABLE unified_financial_records (
     -- COUNTERPART INFORMATION
     counterpart_name VARCHAR(255) COMMENT 'Vendor/donor name - deputy_expenses.nome_fornecedor or tse_campaign_finance.nome_doador',
     counterpart_cnpj_cpf VARCHAR(14) COMMENT 'CNPJ/CPF - deputy_expenses.cnpj_cpf_fornecedor or tse_campaign_finance.cnpj_cpf_doador',
-    counterpart_type VARCHAR(50) COMMENT 'VENDOR, DONOR, INDIVIDUAL, COMPANY',
+    counterpart_type VARCHAR(50) COMMENT 'VENDOR, DONOR, INDIVIDUAL, COMPANY, ORIGINAL_DONOR',
+    counterpart_cnae VARCHAR(10) COMMENT 'Business classification code - from tse_doador_originario.cd_cnae_doador_originario',
+    counterpart_business_type VARCHAR(255) COMMENT 'Business type description - from tse_doador_originario.ds_cnae_doador_originario',
 
     -- GEOGRAPHIC CONTEXT
     state CHAR(2) COMMENT 'Transaction state - tse_campaign_finance.sg_uf_doador',
@@ -276,10 +278,10 @@ CREATE TABLE unified_political_networks (
     -- NETWORK IDENTIFICATION
     network_type VARCHAR(50) NOT NULL COMMENT 'PARLIAMENTARY_FRONT, COMMITTEE, COALITION, FEDERATION, PARTY',
     network_id VARCHAR(50) NOT NULL COMMENT 'Network identifier - deputy_committees.id_orgao, deputy_fronts.id_frente, tse sq_coligacao/nr_federacao',
-    network_name VARCHAR(255) NOT NULL COMMENT 'Network name - deputy_committees.nome_orgao, deputy_fronts.titulo_frente, tse nm_coligacao/nm_federacao',
+    network_name VARCHAR(500) NOT NULL COMMENT 'Network name - deputy_committees.nome_orgao, deputy_fronts.titulo_frente, tse nm_coligacao/nm_federacao',
 
     -- ROLE IN NETWORK
-    role VARCHAR(100) COMMENT 'Role description - deputy_committees.titulo',
+    role VARCHAR(400) COMMENT 'Role description - deputy_committees.titulo',
     role_code VARCHAR(20) COMMENT 'Role code - deputy_committees.cod_titulo',
     is_leadership BOOLEAN DEFAULT FALSE COMMENT 'Leadership position flag',
 

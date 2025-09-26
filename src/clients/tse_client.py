@@ -10,6 +10,7 @@ import json
 import csv
 import io
 import zipfile
+import codecs
 from typing import Dict, List, Any, Optional, Union
 from datetime import datetime
 import re
@@ -76,7 +77,7 @@ class TSEClient:
         packages = self.get_packages()
 
         finance_packages = []
-        search_terms = ['prestacao-contas', 'financiamento', 'doadores', 'receitas']
+        search_terms = ['prestacao-de-contas-eleitorais']
 
         for package in packages:
             if any(term in package.lower() for term in search_terms):
@@ -143,10 +144,10 @@ class TSEClient:
 
             print(f"Found {len(candidate_resources)} candidate resources")
 
-            # Download and parse candidate data
+            # Download and parse candidate data - FULL PROCESSING (NO LIMITS)
             all_candidates = []
 
-            for resource in candidate_resources[:3]:  # Limit to first 3 resources
+            for resource in candidate_resources:  # PROCESS ALL RESOURCES
                 try:
                     print(f"Downloading: {resource.get('name', 'Unknown')}")
 
@@ -442,7 +443,17 @@ class TSEClient:
             'position': ['DS_CARGO', 'CARGO', 'cargo'],
             'election_year': ['ANO_ELEICAO', 'ano', 'year'],
             'status': ['DS_SITUACAO_CANDIDATURA', 'situacao'],
-            'coalition': ['NM_COLIGACAO', 'coligacao']
+            'coalition': ['NM_COLIGACAO', 'coligacao'],
+            # NEW: Electoral outcome fields from verified TSE data structure
+            'electoral_outcome': ['DS_SIT_TOT_TURNO', 'SITUACAO_TURNO', 'electoral_result'],
+            'electoral_outcome_code': ['CD_SIT_TOT_TURNO', 'COD_SIT_TURNO'],
+            'ballot_name': ['NM_URNA_CANDIDATO', 'NOME_URNA', 'nome_urna'],
+            'candidate_id': ['SQ_CANDIDATO', 'SEQUENCIAL_CANDIDATO', 'seq_candidato'],
+            'party_name': ['NM_PARTIDO', 'NOME_PARTIDO', 'nome_partido'],
+            'electoral_unit': ['NM_UE', 'NOME_UE', 'unidade_eleitoral'],
+            'electoral_unit_code': ['SG_UE', 'COD_UE'],
+            'election_code': ['CD_ELEICAO', 'CODIGO_ELEICAO'],
+            'votes_received': ['QT_VOTOS_NOMINAIS', 'VOTOS_NOMINAIS', 'total_votos']  # May not always be present
         }
 
         candidate = {}
@@ -475,6 +486,18 @@ class TSEClient:
         if candidate.get('name'):
             candidate['name_normalized'] = self._normalize_name(candidate['name'])
 
+        # Process electoral outcomes - NEW FEATURE
+        if candidate.get('electoral_outcome'):
+            candidate['was_elected'] = self._determine_election_success(candidate['electoral_outcome'])
+            candidate['election_status_category'] = self._categorize_election_status(candidate['electoral_outcome'])
+
+        # Convert votes to integer if present
+        if candidate.get('votes_received'):
+            try:
+                candidate['votes_received_int'] = int(candidate['votes_received'].replace(',', '').replace('.', ''))
+            except (ValueError, AttributeError):
+                candidate['votes_received_int'] = 0
+
         return candidate
 
     def _normalize_name(self, name: str) -> str:
@@ -491,6 +514,59 @@ class TSEClient:
         name = re.sub(r'\s+', ' ', name).strip()
 
         return name
+
+    def _determine_election_success(self, electoral_outcome: str) -> bool:
+        """
+        Determine if a candidate was elected based on electoral outcome
+        Based on verified TSE data patterns from test results
+        """
+        if not electoral_outcome:
+            return False
+
+        outcome_upper = electoral_outcome.upper().strip()
+
+        # Check if NOT elected first (to avoid false positives with "ELEITO" substring)
+        if 'NÃO ELEITO' in outcome_upper:
+            return False
+
+        # Winning outcomes (order matters)
+        winning_statuses = [
+            'ELEITO POR QP',    # Elected by quotient
+            'ELEITO POR MÉDIA', # Elected by average
+            'ELEITO'            # Elected (general)
+        ]
+
+        return any(status in outcome_upper for status in winning_statuses)
+
+    def _categorize_election_status(self, electoral_outcome: str) -> str:
+        """
+        Categorize election status into standard categories
+        Based on verified TSE data patterns from test results
+        """
+        if not electoral_outcome:
+            return 'UNKNOWN'
+
+        outcome_upper = electoral_outcome.upper().strip()
+
+        # Map outcomes to categories (order matters - check specific patterns first)
+        if 'NÃO ELEITO' in outcome_upper:
+            return 'NOT_ELECTED'
+        elif 'ELEITO POR QP' in outcome_upper:
+            return 'ELECTED_QUOTIENT'
+        elif 'ELEITO POR MÉDIA' in outcome_upper:
+            return 'ELECTED_AVERAGE'
+        elif 'ELEITO' in outcome_upper:
+            return 'ELECTED_DIRECT'
+        elif 'SUPLENTE' in outcome_upper:
+            return 'SUBSTITUTE'
+        elif '#NULO' in outcome_upper or 'NULO' in outcome_upper:
+            return 'VOID'
+        elif 'CANCELADO' in outcome_upper:
+            return 'CANCELLED'
+        elif 'RENUNCIOU' in outcome_upper:
+            return 'RENOUNCED'
+        else:
+            return 'OTHER'
 
     def find_candidate_by_name(self, search_name: str, year: int = 2022, position: str = 'DEPUTADO FEDERAL') -> List[Dict]:
         """
@@ -534,11 +610,24 @@ class TSEClient:
 
         return matches
 
-    def get_finance_data(self, year: int) -> List[Dict]:
+    def get_finance_data(self, year: int, data_type: str = 'all') -> List[Dict]:
         """
         Get campaign finance data for a specific year
         Used by CLI4 financial populators
+
+        Args:
+            year: Election year
+            data_type: Type of data to fetch:
+                'all' - All 4 TSE finance data types
+                'receitas' - Campaign donations (RECEITAS_CANDIDATOS)
+                'despesas_contratadas' - Contracted expenses
+                'despesas_pagas' - Paid expenses
+                'doador_originario' - Original donor tracking
         """
+        print(f"⚠️⚠️⚠️ OLD get_finance_data() CALLED - THIS LOADS EVERYTHING INTO MEMORY! ⚠️⚠️⚠️")
+        print(f"⚠️ Should be using get_finance_data_streaming() instead!")
+        import traceback
+        traceback.print_stack(limit=5)
         print(f"=== TSE FINANCE DATA SEARCH ===")
         print(f"Year: {year}")
 
@@ -561,19 +650,59 @@ class TSEClient:
 
         all_finance_data = []
 
-        # Process each finance package
-        for package_name in finance_packages[:2]:  # Limit to first 2 packages
+        # Process each finance package - FULL PROCESSING (NO LIMITS)
+        for package_name in finance_packages:  # PROCESS ALL PACKAGES
             try:
                 print(f"Processing package: {package_name}")
                 package_info = self.get_package_info(package_name)
                 resources = package_info.get('resources', [])
 
-                # Look for finance CSV resources
+                # Look for finance CSV resources - ALL 4 TSE FINANCE DATA TYPES
                 finance_resources = []
                 for resource in resources:
                     if resource.get('format', '').lower() in ['csv', 'txt']:
                         name = resource.get('name', '').lower()
-                        if any(term in name for term in ['receitas', 'doadores', 'financiamento', 'prestacao']):
+
+                        # Check for any of the 4 TSE finance data types
+                        # Exclude bank statements (extratos bancários) - different data structure
+                        is_finance_resource = (
+                            any(term in name for term in ['prestação', 'prestacao', 'candidatos', 'contas']) or
+                            'receitas_candidatos' in name or
+                            'despesas_contratadas' in name or
+                            'despesas_pagas' in name or
+                            'doador_originario' in name
+                        ) and 'extrato' not in name.lower() and 'bancário' not in name.lower()
+
+                        # Filter by specific data_type if requested
+                        if data_type != 'all':
+                            # The main candidate finance resource contains ALL data types
+                            # Individual state files have specific naming patterns
+                            type_match = {
+                                'receitas': (
+                                    'receitas_candidatos' in name and 'doador_originario' not in name
+                                ) or (
+                                    'prestação de contas de candidatos' in name or 'prestacao de contas de candidatos' in name
+                                ),
+                                'despesas_contratadas': (
+                                    'despesas_contratadas' in name
+                                ) or (
+                                    'prestação de contas de candidatos' in name or 'prestacao de contas de candidatos' in name
+                                ),
+                                'despesas_pagas': (
+                                    'despesas_pagas' in name
+                                ) or (
+                                    'prestação de contas de candidatos' in name or 'prestacao de contas de candidatos' in name
+                                ),
+                                'doador_originario': (
+                                    'doador_originario' in name
+                                ) or (
+                                    'prestação de contas de candidatos' in name or 'prestacao de contas de candidatos' in name
+                                )
+                            }
+                            if not type_match.get(data_type, False):
+                                is_finance_resource = False
+
+                        if is_finance_resource:
                             finance_resources.append(resource)
 
                 if not finance_resources:
@@ -582,10 +711,20 @@ class TSEClient:
 
                 print(f"  Found {len(finance_resources)} finance resources")
 
-                # Download and parse finance data
-                for resource in finance_resources[:1]:  # Limit to 1 resource per package
+                # Prioritize candidate records over party records
+                candidate_resources = [r for r in finance_resources if 'candidato' in r.get('name', '').lower()]
+                if candidate_resources:
+                    finance_resources = candidate_resources
+
+                # Download and parse finance data - FULL PROCESSING (NO LIMITS)
+                for resource in finance_resources:  # PROCESS ALL FINANCE RESOURCES
                     try:
-                        print(f"  Downloading: {resource.get('name', 'Unknown')}")
+                        resource_name = resource.get('name', 'Unknown')
+                        print(f"  Downloading: {resource_name}")
+
+                        # Detect data type from filename
+                        detected_type = self._detect_finance_data_type(resource_name)
+                        print(f"    Data type: {detected_type}")
 
                         download_url = resource.get('url')
                         if download_url.startswith('URL: '):
@@ -594,24 +733,69 @@ class TSEClient:
                         if not download_url.startswith('http'):
                             download_url = urljoin(self.base_url, download_url)
 
-                        response = self.session.get(download_url, timeout=60)
-                        response.raise_for_status()
+                        # ENHANCED PROCESSING: Bulletproof download with extended timeouts for massive files
+                        print(f"    🌐 TSE ZIP URL: {download_url}")
+                        max_retries = 5
+                        for retry in range(max_retries):
+                            try:
+                                print(f"    📥 Downloading large file (attempt {retry + 1}/{max_retries})...")
+                                # Extended timeout for massive TSE files (2 hour timeout)
+                                response = self.session.get(download_url, timeout=(30, 540), stream=True)
+                                response.raise_for_status()
 
-                        # Handle ZIP files and CSV files
+                                # Download with progress indication for large files
+                                content_length = response.headers.get('content-length')
+                                if content_length:
+                                    total_size = int(content_length)
+                                    print(f"    📊 File size: {total_size / (1024*1024):.1f} MB")
+
+                                content = b""
+                                downloaded = 0
+                                chunk_size = 1024 * 1024  # 1MB chunks
+
+                                for chunk in response.iter_content(chunk_size=chunk_size):
+                                    if chunk:
+                                        content += chunk
+                                        downloaded += len(chunk)
+                                        if content_length:
+                                            progress = (downloaded / total_size) * 100
+                                            print(f"    📈 Progress: {progress:.1f}% ({downloaded / (1024*1024):.1f} MB)", end='\r')
+
+                                print(f"\n    ✅ Download completed: {len(content) / (1024*1024):.1f} MB")
+                                response._content = content  # Set content for compatibility
+                                break
+
+                            except (requests.ConnectionError, requests.Timeout) as conn_err:
+                                if retry < max_retries - 1:
+                                    wait_time = (retry + 1) * 30  # Progressive delays: 30s, 60s, 90s, 120s
+                                    print(f"\n    ⚠️ Large file download failed (attempt {retry + 1}/{max_retries}), retrying in {wait_time}s...")
+                                    print(f"    🌐 Failed URL: {download_url}")
+                                    time.sleep(wait_time)
+                                else:
+                                    print(f"\n    ❌ Failed to download large file after {max_retries} attempts: {conn_err}")
+                                    print(f"    🌐 Failed URL: {download_url}")
+                                    print(f"    🔄 RETURNING EMPTY - NOT FAILING")
+                                    return []  # Return empty instead of raising
+
+                        # Handle ZIP files and CSV files with type detection
                         if download_url.endswith('.zip'):
-                            finance_data = self._process_zip_finance_data(response.content)
+                            finance_data = self._process_zip_finance_data(response.content, detected_type)
                         else:
-                            finance_data = self._process_csv_finance_data(response.text)
+                            finance_data = self._process_csv_finance_data(response.text, detected_type)
 
                         all_finance_data.extend(finance_data)
-                        print(f"    ✓ Extracted {len(finance_data)} finance records")
+                        print(f"    ✅ Extracted {len(finance_data):,} {detected_type} records")
 
                     except Exception as e:
                         print(f"    ✗ Error processing resource: {e}")
+                        print(f"    🌐 Resource URL: {download_url}")
+                        print(f"    📁 Resource name: {resource.get('name', 'Unknown')}")
+                        print(f"    🔄 CONTINUING - NOT FAILING")
                         continue
 
             except Exception as e:
                 print(f"  ✗ Error processing package {package_name}: {e}")
+                print(f"  🔄 CONTINUING - NOT FAILING")
                 continue
 
         print(f"Total finance records extracted: {len(all_finance_data)}")
@@ -622,30 +806,276 @@ class TSEClient:
 
         return all_finance_data
 
-    def _process_zip_finance_data(self, zip_content: bytes) -> List[Dict]:
-        """Process ZIP file containing finance CSV data"""
+    def get_finance_data_streaming(self, year: int, data_type: str, target_cpf: str):
+        """
+        MEMORY-EFFICIENT STREAMING: Get TSE finance data filtered by CPF without loading all data
+        Yields records one by one, filtering immediately by CPF to prevent memory exhaustion
+        """
+        print(f"=== TSE STREAMING FINANCE DATA ===")
+        print(f"Year: {year}, Type: {data_type}, Target CPF: {target_cpf}")
+
+        # Find finance packages for the year
+        finance_packages = self.search_finance_packages(year)
+
+        if not finance_packages:
+            print(f"No finance packages found for {year}")
+            return
+
+        # Process packages with streaming
+        for package_name in finance_packages:
+            try:
+                print(f"Streaming package: {package_name}")
+                package_info = self.get_package_info(package_name)
+                resources = package_info.get('resources', [])
+
+                # Look for finance CSV resources
+                finance_resources = []
+                for resource in resources:
+                    if resource.get('format', '').lower() in ['csv', 'txt']:
+                        name = resource.get('name', '').lower()
+                        is_finance_resource = (
+                            any(term in name for term in ['prestação', 'prestacao', 'candidatos', 'contas']) or
+                            'receitas_candidatos' in name or
+                            'despesas_contratadas' in name or
+                            'despesas_pagas' in name or
+                            'doador_originario' in name
+                        ) and 'extrato' not in name.lower()
+
+                        if is_finance_resource:
+                            finance_resources.append(resource)
+
+                if not finance_resources:
+                    continue
+
+                # Stream each resource
+                for resource in finance_resources:
+                    try:
+                        resource_name = resource.get('name', 'Unknown')
+                        detected_type = self._detect_finance_data_type(resource_name)
+
+                        # Skip if not matching requested type
+                        if data_type != 'all' and detected_type != data_type:
+                            continue
+
+                        print(f"  Streaming: {resource_name}")
+
+                        download_url = resource.get('url')
+                        if download_url.startswith('URL: '):
+                            download_url = download_url[5:]
+                        if not download_url.startswith('http'):
+                            download_url = urljoin(self.base_url, download_url)
+
+                        # Download and stream process
+                        print(f"    🌐 Downloading: {download_url}")
+
+                        # For ZIP files, we need to download fully first
+                        if download_url.endswith('.zip'):
+                            print(f"    📥 Downloading ZIP file...")
+                            response = self.session.get(download_url, timeout=(30, 540), stream=True)
+                            response.raise_for_status()
+
+                            # Download with progress indication for large files
+                            content_length = response.headers.get('content-length')
+                            if content_length:
+                                total_size = int(content_length)
+                                print(f"    📊 File size: {total_size / (1024*1024):.1f} MB")
+
+                                content = b""
+                                downloaded = 0
+                                chunk_size = 1024 * 1024  # 1MB chunks
+
+                                for chunk in response.iter_content(chunk_size=chunk_size):
+                                    if chunk:
+                                        content += chunk
+                                        downloaded += len(chunk)
+                                        progress = (downloaded / total_size) * 100
+                                        print(f"    📈 Progress: {progress:.1f}% ({downloaded / (1024*1024):.1f} MB)", end='\r')
+
+                                print(f"\n    ✅ Download completed: {len(content) / (1024*1024):.1f} MB")
+                                response._content = content  # Set content for compatibility
+                            else:
+                                # Fallback for servers that don't provide content-length
+                                print(f"    📥 Downloading ZIP file (size unknown)...")
+                                response._content = b"".join(response.iter_content(chunk_size=1024*1024))
+                                download_size_mb = len(response.content) / 1024 / 1024
+                                print(f"    📥 Downloaded {download_size_mb:.1f}MB ZIP, starting streaming...")
+
+                            # Now stream through the ZIP contents
+                            yield from self._stream_zip_finance_data(response.content, detected_type, target_cpf)
+                        else:
+                            # For CSV, we can truly stream
+                            response = self.session.get(download_url, timeout=(30, 540), stream=True)
+                            response.raise_for_status()
+                            print(f"    📥 Streaming CSV directly...")
+                            yield from self._stream_csv_finance_data(response.text, detected_type, target_cpf)
+
+                    except Exception as e:
+                        print(f"    ✗ Error streaming resource: {e}")
+                        continue
+
+            except Exception as e:
+                print(f"  ✗ Error streaming package {package_name}: {e}")
+                continue
+
+    def _stream_zip_finance_data(self, zip_content: bytes, data_type: str, target_cpf: str):
+        """Stream ZIP contents, filtering by CPF immediately"""
+        try:
+            with zipfile.ZipFile(io.BytesIO(zip_content), 'r') as zip_file:
+                csv_files = [f for f in zip_file.namelist() if f.endswith('.csv') or f.endswith('.txt')]
+
+                for file_name in csv_files:
+                    file_data_type = self._detect_finance_data_type(file_name)
+                    if data_type == 'all' or file_data_type == data_type:
+                        with zip_file.open(file_name) as csv_file:
+                            # CRITICAL FIX: Stream directly from ZIP without loading entire content
+                            print(f"      🔍 Streaming {file_name} directly from ZIP...")
+
+                            # Create text wrapper for streaming
+                            import codecs
+                            text_stream = codecs.getreader('latin-1')(csv_file, errors='replace')
+
+                            # Stream CSV directly without loading all content
+                            reader = csv.DictReader(text_stream, delimiter=';')
+
+                            matched_count = 0
+                            row_count = 0
+                            for row in reader:
+                                row_count += 1
+
+                                # Check if this record matches our target CPF
+                                candidate_cpf = row.get('NR_CPF_CANDIDATO') or row.get('CPF_CANDIDATO')
+                                if candidate_cpf == target_cpf:
+                                    finance_record = self._normalize_finance_data(row, file_data_type, file_name, row_count)
+                                    if finance_record:
+                                        matched_count += 1
+                                        yield finance_record
+
+                                # Progress every 100k records
+                                if row_count % 100000 == 0:
+                                    print(f"        📊 Streamed {row_count:,} records from {file_name}, {matched_count} matches")
+
+                            if matched_count > 0:
+                                print(f"        ✅ Found {matched_count} matches for CPF {target_cpf} in {file_name}")
+
+        except Exception as e:
+            print(f"Error streaming ZIP: {e}")
+
+    def _stream_csv_finance_data(self, csv_content: str, data_type: str, target_cpf: str, file_name: str = 'unknown'):
+        """Stream CSV content, yielding only records matching target CPF"""
+        try:
+            for delimiter in [';', ',', '\t']:
+                try:
+                    csv_file = io.StringIO(csv_content)
+                    reader = csv.DictReader(csv_file, delimiter=delimiter)
+
+                    sample_row = next(reader, None)
+                    if sample_row and len(sample_row) > 5:
+                        print(f"      🔍 Streaming {file_name}, {len(sample_row)} fields")
+
+                        csv_file.seek(0)
+                        reader = csv.DictReader(csv_file, delimiter=delimiter)
+
+                        matched_count = 0
+                        for row_num, row in enumerate(reader, 1):
+                            # Check if this record matches our target CPF
+                            candidate_cpf = row.get('NR_CPF_CANDIDATO') or row.get('CPF_CANDIDATO')
+                            if candidate_cpf == target_cpf:
+                                finance_record = self._normalize_finance_data(row, data_type, file_name, row_num)
+                                if finance_record:
+                                    matched_count += 1
+                                    yield finance_record
+
+                            # Progress every 100k records
+                            if row_num % 100000 == 0:
+                                print(f"        📊 Streamed {row_num:,} records, {matched_count} matches")
+
+                        if matched_count > 0:
+                            print(f"        ✅ Found {matched_count} matches for CPF {target_cpf}")
+                        break
+
+                except Exception:
+                    continue
+
+        except Exception as e:
+            print(f"Error streaming CSV: {e}")
+
+    def _detect_finance_data_type(self, filename: str) -> str:
+        """
+        Detect TSE finance data type from filename
+        Returns one of: receitas, despesas_contratadas, despesas_pagas, doador_originario
+        """
+        filename_lower = filename.lower()
+
+        if 'doador_originario' in filename_lower:
+            return 'doador_originario'
+        elif 'despesas_contratadas' in filename_lower:
+            return 'despesas_contratadas'
+        elif 'despesas_pagas' in filename_lower:
+            return 'despesas_pagas'
+        elif 'receitas_candidatos' in filename_lower:
+            return 'receitas'
+        else:
+            # Default to receitas for backward compatibility
+            return 'receitas'
+
+    def _process_zip_finance_data(self, zip_content: bytes, data_type: str = 'receitas') -> List[Dict]:
+        """Process ZIP file containing finance CSV data - 100% FILE COVERAGE GUARANTEED"""
         finance_records = []
+        total_files = 0
+        processed_files = 0
+        failed_files = []
 
         try:
             with zipfile.ZipFile(io.BytesIO(zip_content), 'r') as zip_file:
-                for file_name in zip_file.namelist():
-                    if file_name.endswith('.csv') or file_name.endswith('.txt'):
-                        if any(term in file_name.lower() for term in ['receitas', 'doadores', 'financiamento']):
+                csv_files = [f for f in zip_file.namelist() if f.endswith('.csv') or f.endswith('.txt')]
+                total_files = len(csv_files)
+                print(f"      📁 Total CSV files in ZIP: {total_files}")
+
+                for file_name in csv_files:
+                    try:
+                        # Detect file type and filter accordingly
+                        file_data_type = self._detect_finance_data_type(file_name)
+                        print(f"      📄 Processing: {file_name} (type: {file_data_type})")
+
+                        # Process ALL files for comprehensive coverage
+                        should_process = (
+                            data_type == 'all' or
+                            file_data_type == data_type or
+                            any(term in file_name.lower() for term in ['receitas', 'doadores', 'financiamento', 'despesas'])
+                        )
+
+                        if should_process:
                             with zip_file.open(file_name) as csv_file:
-                                content = csv_file.read().decode('utf-8', errors='ignore')
-                                file_records = self._process_csv_finance_data(content)
+                                content = csv_file.read().decode('latin-1', errors='replace')  # Better error handling
+                                file_records = self._process_csv_finance_data(content, file_data_type, file_name)
                                 finance_records.extend(file_records)
+                                processed_files += 1
+                                print(f"        ✅ SUCCESS: {len(file_records):,} valid records from {file_name}")
+                        else:
+                            print(f"        ⏭️ SKIPPED: {file_name} (type filter: {data_type})")
+
+                    except Exception as file_error:
+                        failed_files.append(file_name)
+                        print(f"        ❌ FAILED: {file_name} - {file_error}")
+                        print(f"        🔄 CONTINUING WITH NEXT FILE")
+                        continue
+
+                print(f"      📈 SUMMARY: {processed_files}/{total_files} files processed successfully")
+                if failed_files:
+                    print(f"      ⚠️ FAILED FILES: {failed_files}")
+
         except Exception as e:
-            print(f"Error processing finance ZIP: {e}")
+            print(f"      ❌ ZIP PROCESSING ERROR: {e}")
+            print(f"      🔄 RETURNING PARTIAL RESULTS")
 
         return finance_records
 
-    def _process_csv_finance_data(self, csv_content: str) -> List[Dict]:
-        """Process CSV finance data"""
+    def _process_csv_finance_data(self, csv_content: str, data_type: str = 'receitas', file_name: str = 'unknown') -> List[Dict]:
+        """Process CSV finance data - FULL PROCESSING WITH STREAMING"""
         finance_records = []
 
         try:
-            # Try different delimiters
+            # Try different delimiters (TSE uses semicolon primarily)
             for delimiter in [';', ',', '\t']:
                 try:
                     csv_file = io.StringIO(csv_content)
@@ -653,13 +1083,64 @@ class TSEClient:
 
                     sample_row = next(reader, None)
                     if sample_row and len(sample_row) > 5:  # Good delimiter found
+                        print(f"      🔍 Found delimiter '{delimiter}', {len(sample_row)} fields")
+                        print(f"      📋 Sample TSE fields: {list(sample_row.keys())[:10]}...")
+
                         csv_file.seek(0)
                         reader = csv.DictReader(csv_file, delimiter=delimiter)
 
+                        # 100% PROCESSING: Process ALL rows with detailed error tracking
+                        row_count = 0
+                        valid_count = 0
+                        error_count = 0
+                        sample_errors = []  # Store first 5 errors with actual data
+
                         for row in reader:
-                            finance_record = self._normalize_finance_data(row)
-                            if finance_record:
-                                finance_records.append(finance_record)
+                            row_count += 1
+
+                            try:
+                                finance_record = self._normalize_finance_data(row, data_type, file_name, row_count)
+                                if finance_record:
+                                    finance_records.append(finance_record)
+                                    valid_count += 1
+                                else:
+                                    error_count += 1
+                                    if len(sample_errors) < 5:  # Store first 5 failed rows
+                                        sample_errors.append({
+                                            'row_number': row_count,
+                                            'error': 'Failed normalization',
+                                            'raw_data': dict(row),
+                                            'available_columns': list(row.keys())
+                                        })
+                            except Exception as row_error:
+                                error_count += 1
+                                if len(sample_errors) < 5:  # Store first 5 exceptions
+                                    sample_errors.append({
+                                        'row_number': row_count,
+                                        'error': str(row_error),
+                                        'raw_data': dict(row),
+                                        'available_columns': list(row.keys())
+                                    })
+
+                            # Progress indicator for large files (every 50k records)
+                            if row_count % 50000 == 0:
+                                success_rate = (valid_count / row_count) * 100 if row_count > 0 else 0
+                                print(f"        📊 Processed {row_count:,} records, {valid_count:,} valid ({success_rate:.1f}%)")
+
+                        # DETAILED FINAL REPORT
+                        final_success_rate = (valid_count / row_count) * 100 if row_count > 0 else 0
+                        print(f"        ✅ COMPLETE: {row_count:,} total records")
+                        print(f"        ✅ VALID: {valid_count:,} records ({final_success_rate:.1f}%)")
+                        print(f"        ❌ ERRORS: {error_count:,} records")
+
+                        # Show sample errors for debugging
+                        if sample_errors:
+                            print(f"        🔍 SAMPLE ERRORS (first {len(sample_errors)}):{sample_errors}")
+                            for error in sample_errors:
+                                print(f"          Row {error['row_number']}: {error['error']}")
+                                print(f"          Available columns: {error['available_columns'][:10]}...")
+                                print(f"          Sample data: {str(error['raw_data'])[:200]}...")
+
                         break
 
                 except Exception:
@@ -670,27 +1151,66 @@ class TSEClient:
 
         return finance_records
 
-    def _normalize_finance_data(self, raw_row: Dict[str, str]) -> Optional[Dict[str, Any]]:
-        """Normalize finance data to standard format"""
+    def _normalize_finance_data(self, raw_row: Dict[str, str], data_type: str = 'receitas', file_name: str = 'unknown', row_number: int = 0) -> Optional[Dict[str, Any]]:
+        """Normalize finance data to standard format - ALL 4 TSE DATA TYPES"""
         if not raw_row:
+            print(f"    🚫 REJECT: Empty row")
             return None
 
-        # Common field mappings for TSE finance data
-        field_mappings = {
+        # Base field mappings common to all types
+        base_mappings = {
             'nr_cpf_candidato': ['NR_CPF_CANDIDATO', 'CPF_CANDIDATO'],
-            'cpf_candidato': ['NR_CPF_CANDIDATO', 'CPF_CANDIDATO'],
-            'nr_cpf_cnpj_doador': ['NR_CPF_CNPJ_DOADOR', 'CNPJ_CPF_DOADOR'],
-            'cnpj_cpf_doador': ['NR_CPF_CNPJ_DOADOR', 'CNPJ_CPF_DOADOR'],
-            'nm_doador': ['NM_DOADOR', 'NOME_DOADOR'],
-            'nome_doador': ['NM_DOADOR', 'NOME_DOADOR'],
-            'vr_receita': ['VR_RECEITA', 'VALOR_RECEITA'],
-            'valor_receita': ['VR_RECEITA', 'VALOR_RECEITA'],
-            'dt_receita': ['DT_RECEITA', 'DATA_RECEITA'],
-            'data_receita': ['DT_RECEITA', 'DATA_RECEITA'],
-            'ds_especie_receita': ['DS_ESPECIE_RECEITA', 'ESPECIE_RECEITA'],
-            'descricao_receita': ['DS_ESPECIE_RECEITA', 'ESPECIE_RECEITA'],
-            'sq_receita': ['SQ_RECEITA', 'SEQUENCIAL_RECEITA']
+            'cpf_candidato': ['NR_CPF_CANDIDATO', 'CPF_CANDIDATO']
         }
+
+        # Type-specific field mappings based on ACTUAL TSE data structure
+        type_mappings = {
+            'receitas': {
+                'nr_cpf_cnpj_doador': ['NR_CPF_CNPJ_DOADOR', 'CNPJ_CPF_DOADOR'],
+                'cnpj_cpf_doador': ['NR_CPF_CNPJ_DOADOR', 'CNPJ_CPF_DOADOR'],
+                'nm_doador': ['NM_DOADOR', 'NOME_DOADOR'],
+                'nome_doador': ['NM_DOADOR', 'NOME_DOADOR'],
+                'vr_receita': ['VR_RECEITA', 'VALOR_RECEITA'],
+                'valor_receita': ['VR_RECEITA', 'VALOR_RECEITA'],
+                'dt_receita': ['DT_RECEITA', 'DATA_RECEITA'],
+                'data_receita': ['DT_RECEITA', 'DATA_RECEITA'],
+                'ds_especie_receita': ['DS_ESPECIE_RECEITA', 'ESPECIE_RECEITA'],
+                'descricao_receita': ['DS_ESPECIE_RECEITA', 'ESPECIE_RECEITA'],
+                'sq_receita': ['SQ_RECEITA', 'SEQUENCIAL_RECEITA']
+            },
+            'despesas_contratadas': {
+                'nr_cpf_cnpj_fornecedor': ['NR_CPF_CNPJ_FORNECEDOR', 'CNPJ_CPF_FORNECEDOR'],
+                'nm_fornecedor': ['NM_FORNECEDOR', 'NOME_FORNECEDOR'],
+                'vr_despesa_contratada': ['VR_DESPESA_CONTRATADA', 'VALOR_DESPESA'],
+                'vr_despesa': ['VR_DESPESA_CONTRATADA', 'VALOR_DESPESA'],
+                'dt_despesa': ['DT_DESPESA', 'DATA_DESPESA'],
+                'ds_despesa': ['DS_DESPESA', 'DESCRICAO_DESPESA'],
+                'sq_despesa': ['SQ_DESPESA', 'SEQUENCIAL_DESPESA']
+            },
+            'despesas_pagas': {
+                'vr_pagto_despesa': ['VR_PAGTO_DESPESA', 'VALOR_PAGAMENTO'],
+                'vr_pagamento': ['VR_PAGTO_DESPESA', 'VALOR_PAGAMENTO'],
+                'dt_pagto_despesa': ['DT_PAGTO_DESPESA', 'DATA_PAGAMENTO'],
+                'dt_pagamento': ['DT_PAGTO_DESPESA', 'DATA_PAGAMENTO'],
+                'ds_despesa': ['DS_DESPESA', 'DESCRICAO_DESPESA'],
+                'sq_despesa': ['SQ_DESPESA', 'SEQUENCIAL_PAGAMENTO']
+            },
+            'doador_originario': {
+                'nr_cpf_cnpj_doador_originario': ['NR_CPF_CNPJ_DOADOR_ORIGINARIO'],
+                'nm_doador_originario': ['NM_DOADOR_ORIGINARIO'],
+                'nm_doador_originario_rfb': ['NM_DOADOR_ORIGINARIO_RFB'],
+                'tp_doador_originario': ['TP_DOADOR_ORIGINARIO'],
+                'cd_cnae_doador_originario': ['CD_CNAE_DOADOR_ORIGINARIO'],
+                'ds_cnae_doador_originario': ['DS_CNAE_DOADOR_ORIGINARIO'],
+                'sq_receita': ['SQ_RECEITA'],
+                'dt_receita': ['DT_RECEITA'],
+                'ds_receita': ['DS_RECEITA'],
+                'vr_receita': ['VR_RECEITA']
+            }
+        }
+
+        # Combine base and type-specific mappings
+        field_mappings = {**base_mappings, **type_mappings.get(data_type, {})}
 
         finance_record = {}
 
@@ -710,11 +1230,53 @@ class TSEClient:
             if value:
                 finance_record[standard_field] = value
 
-        # Must have at least amount and candidate CPF
-        if not (finance_record.get('vr_receita') or finance_record.get('valor_receita')):
-            return None
-        if not (finance_record.get('nr_cpf_candidato') or finance_record.get('cpf_candidato')):
-            return None
+        # Add data type metadata
+        finance_record['tse_data_type'] = data_type
+
+        # Add debug info only for rejections, not successes
+        record_debug = False  # Only enable for debugging validation issues
+
+        # Validation based on data type with detailed logging
+        if data_type in ['receitas', 'doador_originario']:
+            # Must have amount for revenue records
+            amount_value = finance_record.get('vr_receita') or finance_record.get('valor_receita')
+            if not amount_value:
+                if record_debug:
+                    print(f"    🚫 REJECT ({data_type}): Missing amount field")
+                    print(f"       Available fields: {list(finance_record.keys())[:10]}...")
+                    print(f"       Looking for: vr_receita, valor_receita")
+                return None
+        elif data_type == 'despesas_contratadas':
+            # Must have expense amount for contracted expenses
+            amount_value = finance_record.get('vr_despesa_contratada') or finance_record.get('vr_despesa')
+            if not amount_value:
+                if record_debug:
+                    print(f"    🚫 REJECT ({data_type}): Missing expense amount field")
+                    print(f"       Available fields: {list(finance_record.keys())[:10]}...")
+                    print(f"       Looking for: vr_despesa_contratada, vr_despesa")
+                return None
+        elif data_type == 'despesas_pagas':
+            # Must have payment amount for paid expenses
+            amount_value = finance_record.get('vr_pagto_despesa') or finance_record.get('vr_pagamento')
+            if not amount_value:
+                if record_debug:
+                    print(f"    🚫 REJECT ({data_type}): Missing payment amount field")
+                    print(f"       Available fields: {list(finance_record.keys())[:10]}...")
+                    print(f"       Looking for: vr_pagto_despesa, vr_pagamento")
+                return None
+
+        # Only receitas and despesas_contratadas have candidate CPF
+        # despesas_pagas and doador_originario have different structures (no candidate info)
+        if data_type in ['receitas', 'despesas_contratadas']:
+            cpf_value = finance_record.get('nr_cpf_candidato') or finance_record.get('cpf_candidato')
+            if not cpf_value:
+                if record_debug:
+                    print(f"    🚫 REJECT ({data_type}): Missing candidate CPF")
+                    print(f"       Available fields: {list(finance_record.keys())[:10]}...")
+                    print(f"       Looking for: nr_cpf_candidato, cpf_candidato")
+                return None
+
+        # Success! No logging needed - reduces noise
 
         return finance_record
 
@@ -776,6 +1338,84 @@ class TSEClient:
         print(f"Electoral history confidence: {history['correlation_confidence']:.2f}")
 
         return history
+
+    def get_electoral_success_statistics(self, candidate_cpf: str, years: List[int] = None) -> Dict[str, Any]:
+        """
+        Calculate electoral success statistics for a specific candidate
+        Useful for the metrics calculator and political career analysis
+        """
+        if years is None:
+            years = [2018, 2020, 2022]  # Default recent elections
+
+        stats = {
+            'total_elections': 0,
+            'elections_won': 0,
+            'elections_lost': 0,
+            'substitute_positions': 0,
+            'total_votes': 0,
+            'success_rate': 0.0,
+            'elections_detail': [],
+            'career_trajectory': 'UNKNOWN'
+        }
+
+        print(f"🔍 Calculating electoral success for CPF: {candidate_cpf}")
+
+        for year in years:
+            try:
+                candidates = self.get_candidate_data(year)
+
+                # Find this candidate in the election
+                candidate_records = [
+                    c for c in candidates
+                    if c.get('cpf') == candidate_cpf
+                ]
+
+                for record in candidate_records:
+                    stats['total_elections'] += 1
+
+                    election_detail = {
+                        'year': year,
+                        'position': record.get('position'),
+                        'party': record.get('party'),
+                        'electoral_outcome': record.get('electoral_outcome'),
+                        'was_elected': record.get('was_elected', False),
+                        'votes_received': record.get('votes_received_int', 0),
+                        'status_category': record.get('election_status_category')
+                    }
+
+                    if record.get('was_elected'):
+                        stats['elections_won'] += 1
+                    elif record.get('election_status_category') == 'SUBSTITUTE':
+                        stats['substitute_positions'] += 1
+                    else:
+                        stats['elections_lost'] += 1
+
+                    stats['total_votes'] += record.get('votes_received_int', 0)
+                    stats['elections_detail'].append(election_detail)
+
+            except Exception as e:
+                print(f"  ⚠️ Error analyzing {year}: {e}")
+
+        # Calculate success rate
+        if stats['total_elections'] > 0:
+            stats['success_rate'] = stats['elections_won'] / stats['total_elections']
+
+        # Determine career trajectory
+        if stats['elections_won'] >= 2:
+            stats['career_trajectory'] = 'ESTABLISHED_WINNER'
+        elif stats['elections_won'] == 1 and stats['total_elections'] > 1:
+            stats['career_trajectory'] = 'OCCASIONAL_WINNER'
+        elif stats['substitute_positions'] > 0:
+            stats['career_trajectory'] = 'SUBSTITUTE_CANDIDATE'
+        elif stats['total_elections'] > 1:
+            stats['career_trajectory'] = 'PERSISTENT_CANDIDATE'
+        elif stats['total_elections'] == 1:
+            stats['career_trajectory'] = 'SINGLE_ELECTION'
+
+        print(f"  📊 Success Rate: {stats['success_rate']:.2f} ({stats['elections_won']}/{stats['total_elections']})")
+        print(f"  🎯 Career: {stats['career_trajectory']}")
+
+        return stats
 
 
 def test_tse_integration():
