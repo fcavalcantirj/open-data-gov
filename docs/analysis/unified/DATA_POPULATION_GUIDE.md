@@ -11,7 +11,7 @@ This guide documents the complete field mapping between Brazilian government API
 
 ## 🚀 CLI4 POPULATION COMMANDS
 
-### Full Population Workflow (35-44 hours total)
+### Full Population Workflow (36-46 hours total)
 ```bash
 # Option 1: Use automated script with WhatsApp notifications
 ./run_full_population.sh
@@ -21,6 +21,7 @@ python cli4/main.py populate              # ~1-2 hours
 python cli4/main.py populate-financial    # ~24-28 hours (HEAVY!)
 python cli4/main.py populate-electoral    # ~2-3 hours
 python cli4/main.py populate-networks     # ~3-4 hours
+python cli4/main.py populate-career       # ~1-2 hours (NEW!)
 python cli4/main.py populate-assets       # ~1-2 hours (NEW!)
 python cli4/main.py populate-professional # ~30-45 minutes (NEW!)
 python cli4/main.py populate-events       # ~45-60 minutes (NEW!)
@@ -36,6 +37,7 @@ python cli4/main.py validate              # ~1-3 minutes (ALWAYS LAST)
 | `populate-financial` | 24-28 hours | ~1.8GB | Parliamentary expenses + TSE finance |
 | `populate-electoral` | 2-3 hours | ~700MB | Electoral outcomes from TSE |
 | `populate-networks` | 3-4 hours | ~500MB | Committees, fronts, coalitions |
+| `populate-career` | 1-2 hours | ~150MB | **External mandates and career history from Deputados API** |
 | `populate-assets` | 1-2 hours | ~200MB | **Individual TSE asset declarations with detailed tracking** |
 | `populate-professional` | 30-45 min | ~50MB | **Professional background from Deputados API** |
 | `populate-events` | 45-60 min | ~60MB | **Parliamentary events with smart date range calculation** |

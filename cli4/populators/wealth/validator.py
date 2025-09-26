@@ -368,15 +368,35 @@ class CLI4WealthValidator:
         print(f"   ✅ Passed: {validation['passed']}, ❌ Failed: {validation['failed']}")
 
     def _calculate_compliance_score(self, validations: Dict) -> float:
-        """Calculate overall compliance score"""
-        total_passed = sum(v['passed'] for v in validations.values())
-        total_failed = sum(v['failed'] for v in validations.values())
-        total_tests = total_passed + total_failed
+        """Calculate weighted compliance score"""
+        # Define weights for different validation categories (based on importance)
+        weights = {
+            'core_data_integrity': 0.25,    # Critical - required fields, basic validity
+            'wealth_calculations': 0.20,    # High - mathematical accuracy
+            'temporal_consistency': 0.15,   # Important - timeline validation
+            'wealth_progression': 0.15,     # Important - growth patterns
+            'asset_correlation': 0.10,      # Moderate - cross-table validation
+            'data_quality': 0.10,          # Moderate - format and completeness
+            'politician_references': 0.05   # Low - referential integrity
+        }
 
-        if total_tests == 0:
+        weighted_score = 0.0
+        total_weight = 0.0
+
+        for category, results in validations.items():
+            if category in weights:
+                weight = weights[category]
+                total_tests = results['passed'] + results['failed']
+
+                if total_tests > 0:
+                    category_score = (results['passed'] / total_tests) * 100
+                    weighted_score += category_score * weight
+                    total_weight += weight
+
+        if total_weight == 0:
             return 0.0
 
-        return (total_passed / total_tests) * 100
+        return weighted_score / total_weight
 
     def _print_validation_summary(self, validations: Dict, compliance_score: float, total_records: int):
         """Print comprehensive validation summary"""
