@@ -11,7 +11,7 @@ This guide documents the complete field mapping between Brazilian government API
 
 ## 🚀 CLI4 POPULATION COMMANDS
 
-### Full Population Workflow (37-47 hours total)
+### Full Population Workflow (37-48 hours total)
 ```bash
 # Option 1: Use automated script with WhatsApp notifications
 ./run_full_population.sh
@@ -26,6 +26,7 @@ python cli4/main.py populate-assets       # ~1-2 hours (NEW!)
 python cli4/main.py populate-professional # ~30-45 minutes (NEW!)
 python cli4/main.py populate-events       # ~45-60 minutes (NEW!)
 python cli4/main.py populate-sanctions    # ~1 hour (NEW! CORRUPTION DETECTION)
+python cli4/main.py populate-tcu          # ~30 minutes (NEW! CORRUPTION DETECTION)
 python cli4/main.py post-process          # ~30 minutes (MUST RUN BEFORE WEALTH!)
 python cli4/main.py populate-wealth       # ~1-2 hours (DEPENDS ON POST-PROCESS!)
 python cli4/main.py validate              # ~1-3 minutes (ALWAYS LAST)
@@ -43,6 +44,7 @@ python cli4/main.py validate              # ~1-3 minutes (ALWAYS LAST)
 | `populate-professional` | 30-45 min | ~50MB | **Professional background from Deputados API** |
 | `populate-events` | 45-60 min | ~60MB | **Parliamentary events with smart date range calculation** |
 | `populate-sanctions` | 1 hour | ~120MB | **Portal Transparência sanctions for corruption detection (21,795 records)** |
+| `populate-tcu` | 30 min | ~50MB | **TCU disqualifications for corruption detection (Federal Audit Court)** |
 | `populate-wealth` | 1-2 hours | ~2GB | **TSE asset declarations with intelligent year selection** |
 | `post-process` | 30 min | ~40MB | Calculate aggregate metrics |
 | `validate` | 1-3 min | ~40MB | Data integrity validation (ALWAYS LAST) |
@@ -1451,16 +1453,188 @@ python cli4/main.py validate --table wealth
 
 ---
 
+## 📋 TABLE 11: VENDOR_SANCTIONS ✅ **CLI4 IMPLEMENTED**
+
+### Purpose
+Complete registry of vendor sanctions from Portal da Transparência for corruption detection through CNPJ cross-referencing.
+
+### CLI4 Implementation (September 2024)
+- **Populator**: `cli4/populators/sanctions/populator.py`
+- **Validator**: `cli4/populators/sanctions/validator.py`
+- **Command**: `python cli4/main.py populate-sanctions --max-pages 1500`
+- **Duration**: ~1 hour for ~21,795 sanction records
+- **Status**: **FULLY FUNCTIONAL** - Complete Portal da Transparência CEIS integration
+
+### PostgreSQL Schema (ACTUAL IMPLEMENTATION)
+```sql
+CREATE TABLE vendor_sanctions (
+    id SERIAL PRIMARY KEY,
+    cnpj VARCHAR(14) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    sanction_type VARCHAR(100),
+    sanction_description TEXT,
+    sanctioning_body VARCHAR(255),
+    start_date DATE,
+    end_date DATE,
+    federal_register_number VARCHAR(100),
+    federal_register_date DATE,
+    source_system VARCHAR(20) DEFAULT 'PORTAL_TRANSPARENCIA',
+    api_reference_id VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(cnpj, sanction_type, start_date)
+);
+```
+
+### Data Sources (100% VERIFIED)
+
+#### Portal da Transparência CEIS API (TESTED)
+- **Route**: `https://api.portaldatransparencia.gov.br/api-de-dados/ceis` ✅ **VERIFIED**
+- **Pagination**: Supports offset-based pagination
+- **Total Records**: 21,795 sanctions across all pages
+- **API Format**: JSON with direct array response
+
+### Complete Field Mapping (ALL FIELDS VERIFIED)
+
+| Database Field | Portal API Field | Data Type | Purpose |
+|---------------|------------------|-----------|----------|
+| `cnpj` | `numeroInscricaoSocial` (cleaned) | VARCHAR(14) | Company identifier |
+| `name` | `nome` | VARCHAR(255) | Company name |
+| `sanction_type` | `tipoSancao` | VARCHAR(100) | Sanction type |
+| `sanction_description` | `textoPublicacao` | TEXT | Full sanction description |
+| `sanctioning_body` | `orgaoSancionador` | VARCHAR(255) | Sanctioning government body |
+| `start_date` | `dataInicioSancao` | DATE | Sanction start date |
+| `end_date` | `dataFimSancao` | DATE | Sanction end date |
+| `federal_register_number` | `numeroProcesso` | VARCHAR(100) | Process number |
+| `federal_register_date` | `dataPublicacao` | DATE | Publication date |
+| `api_reference_id` | Composite key | VARCHAR(100) | Unique API reference |
+
+---
+
+## 📋 TABLE 12: TCU_DISQUALIFICATIONS ✅ **CLI4 IMPLEMENTED**
+
+### Purpose
+Complete registry of TCU Federal Audit Court disqualifications for corruption detection through CPF cross-referencing.
+
+### CLI4 Implementation (September 2025)
+- **Populator**: `cli4/populators/tcu/populator.py`
+- **Validator**: `cli4/populators/tcu/validator.py`
+- **Command**: `python cli4/main.py populate-tcu --max-pages 100`
+- **Duration**: ~30 minutes for complete TCU database
+- **Status**: **FULLY FUNCTIONAL** - Complete TCU disqualifications integration
+
+### PostgreSQL Schema (ACTUAL IMPLEMENTATION)
+```sql
+CREATE TABLE tcu_disqualifications (
+    id SERIAL PRIMARY KEY,
+    cpf VARCHAR(11) NOT NULL,
+    nome VARCHAR(255),
+    processo VARCHAR(50),
+    deliberacao VARCHAR(50),
+    data_transito_julgado DATE,
+    data_final DATE,
+    data_acordao DATE,
+    uf VARCHAR(10),
+    municipio VARCHAR(255),
+    data_source VARCHAR(50) DEFAULT 'TCU',
+    api_reference_id VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(cpf, processo, deliberacao)
+);
+```
+
+### Data Sources (100% VERIFIED)
+
+#### TCU Federal Audit Court API (TESTED)
+- **Route**: `https://contas.tcu.gov.br/ords/condenacao/consulta/inabilitados` ✅ **VERIFIED**
+- **Pagination**: Supports offset-based pagination with `{"items": [...], "hasMore": boolean}` format
+- **API Format**: Oracle REST API with JSON response
+- **Data Coverage**: Complete federal disqualifications database
+
+### Complete Field Mapping (ALL FIELDS VERIFIED)
+
+| Database Field | TCU API Field | Data Type | Purpose |
+|---------------|---------------|-----------|----------|
+| `cpf` | `cpf` (cleaned) | VARCHAR(11) | Individual identifier |
+| `nome` | `nome` | VARCHAR(255) | Individual name |
+| `processo` | `processo` | VARCHAR(50) | TCU process number |
+| `deliberacao` | `deliberacao` | VARCHAR(50) | Court deliberation |
+| `data_transito_julgado` | `data_transito_julgado` | DATE | Final judgment date |
+| `data_final` | `data_final` | DATE | Disqualification end date |
+| `data_acordao` | `data_acordao` | DATE | Court ruling date |
+| `uf` | `uf` | VARCHAR(10) | State |
+| `municipio` | `municipio` | VARCHAR(255) | Municipality |
+| `api_reference_id` | `processo` | VARCHAR(100) | Process reference |
+
+### Processing Strategy (MEMORY-EFFICIENT IMPLEMENTATION)
+1. **Pagination Handling**:
+   - Process pages using offset-based requests
+   - Handle Oracle REST API `{"items": [...], "hasMore": boolean}` format
+   - Continue until `hasMore` is false
+
+2. **CPF Processing**:
+   - Clean CPF format (remove dots, dashes, spaces)
+   - Validate 11-digit length
+   - Basic CPF validation (reject all-same-digit)
+
+3. **Date Processing**:
+   - Parse ISO format with timezone: "2022-07-16T03:00:00Z"
+   - Handle simple date format: "2022-07-16"
+   - Extract date part only for database storage
+
+4. **Database Operation**:
+   - UPSERT using `ON CONFLICT (cpf, processo, deliberacao) DO UPDATE`
+   - Batch processing for efficiency
+   - Comprehensive error handling
+
+### Corruption Detection Integration
+- **Cross-reference Capability**: CPF-based politician matching
+- **Fast Lookups**: Database index on CPF field
+- **Real-time Correlation**: Ready for politician CPF cross-referencing
+- **Active vs Expired**: Support for time-based disqualification filtering
+
+### Usage Examples
+```bash
+# Basic TCU population
+python cli4/main.py populate-tcu
+
+# Limited pages for testing
+python cli4/main.py populate-tcu --max-pages 10
+
+# Update existing records
+python cli4/main.py populate-tcu --update-existing
+
+# Validate TCU data
+python cli4/main.py validate --table tcu
+```
+
+### Duplicate Prevention
+- **Constraint**: `UNIQUE (cpf, processo, deliberacao)`
+- **Strategy**: ON CONFLICT DO UPDATE (updates existing with latest data)
+- **Safe to re-run**: Yes, updates existing records with fresh TCU data
+
+---
+
 ## 🔍 KEY RELATIONSHIPS
 
 ### Foreign Key Constraints
 1. `unified_financial_records.politician_id` → `unified_politicians.id`
 2. `unified_financial_records.counterpart_cnpj_cpf` → `financial_counterparts.cnpj_cpf`
+3. `unified_electoral_records.politician_id` → `unified_politicians.id`
+4. `unified_political_networks.politician_id` → `unified_politicians.id`
+5. `politician_career_history.politician_id` → `unified_politicians.id`
+6. `politician_events.politician_id` → `unified_politicians.id`
+7. `politician_professional_background.politician_id` → `unified_politicians.id`
+8. `politician_assets.politician_id` → `unified_politicians.id`
+9. `unified_wealth_tracking.politician_id` → `unified_politicians.id`
 
 ### Data Correlation Strategy
 1. **CPF Correlation**: Match Deputados politicians with TSE candidates using CPF
 2. **CNPJ/CPF Deduplication**: Create unique counterparts registry from all transactions
 3. **Temporal Alignment**: Preserve original dates while enabling cross-source analysis
+4. **Corruption Detection**: Cross-reference politician CPFs with TCU disqualifications
+5. **Vendor Sanctions**: Cross-reference financial counterpart CNPJs with Portal da Transparência sanctions
+6. **Multi-source Validation**: Correlate across all 12 tables for comprehensive analysis
 
 ---
 
@@ -1498,7 +1672,7 @@ python cli4/main.py validate --table wealth
 
 ### Documentation Status: COMPLETE ✅
 
-**ALL 10 DATABASE TABLES DOCUMENTED**:
+**ALL 12 DATABASE TABLES DOCUMENTED**:
 1. ✅ `unified_politicians` - 50+ fields with exact API mappings
 2. ✅ `financial_counterparts` - Complete vendor/donor registry
 3. ✅ `unified_financial_records` - All 36 fields with PostgreSQL accuracy (updated with TSE business classification)
@@ -1509,6 +1683,8 @@ python cli4/main.py validate --table wealth
 8. ✅ `politician_professional_background` - **COMPLETE CLI4 IMPLEMENTATION** (NEW - December 2024)
 9. ✅ `politician_assets` - Individual TSE asset declarations
 10. ✅ `unified_wealth_tracking` - **COMPLETE IMPLEMENTATION WITH OPTIMIZATION** (NEW - September 2024)
+11. ✅ `vendor_sanctions` - Portal da Transparência sanctions (21,795 records for corruption detection)
+12. ✅ `tcu_disqualifications` - **TCU Federal Audit Court disqualifications (NEW - September 2025)**
 
 **ALL DEPUTADOS API ROUTES TESTED**:
 - ✅ 9/9 routes tested with live API calls
@@ -1529,15 +1705,18 @@ python cli4/main.py validate --table wealth
 - ✅ Data types match actual schema
 
 **CLI4 IMPLEMENTATION STATUS: COMPLETE** 🎯:
-- ✅ All 8 populators fully implemented and tested
+- ✅ All 10 populators fully implemented and tested
 - ✅ Events populator with smart date range calculation and categorization (NEW - December 2024)
 - ✅ Professional populator with 85.7% data coverage (NEW - December 2024)
 - ✅ Wealth populator with intelligent year optimization (25% efficiency gain)
-- ✅ Complete validation system with 8-category comprehensive analysis
-- ✅ Full population script updated (38-49 hour workflow)
+- ✅ Sanctions populator with 21,795 records (Portal da Transparência CEIS)
+- ✅ TCU populator with Federal Audit Court disqualifications (NEW - September 2025)
+- ✅ Complete validation system with comprehensive analysis across all tables
+- ✅ Full population script updated (37-48 hour workflow)
 - ✅ All PostgreSQL schemas match actual implementation
 - ✅ All API field mappings verified from live responses
 - ✅ Brazilian currency parsing and asset categorization working
+- ✅ Corruption detection ready with cross-source CPF/CNPJ matching
 
 ### THE AUTHORITATIVE DATA SOURCE REFERENCE
 

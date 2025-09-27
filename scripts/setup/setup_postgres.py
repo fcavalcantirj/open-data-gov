@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 PostgreSQL Setup Script for Brazilian Political Transparency Data Lake
-Creates all 9 unified schema tables for complete data integration
+Creates all 13 unified schema tables for complete data integration
 """
 
 import psycopg2
@@ -12,7 +12,7 @@ from datetime import datetime
 def create_unified_postgres_database():
     """
     Create the complete unified political transparency database in PostgreSQL
-    with all 9 tables from the validated schema.
+    with all 13 tables from the validated schema.
     """
 
     postgres_url = os.getenv('POSTGRES_POOL_URL')
@@ -470,6 +470,43 @@ def create_unified_postgres_database():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
+        '''),
+        ('tcu_disqualifications', '''
+        CREATE TABLE IF NOT EXISTS tcu_disqualifications (
+            id SERIAL PRIMARY KEY,
+            cpf VARCHAR(11) NOT NULL,
+            nome VARCHAR(255),
+            processo VARCHAR(50),
+            deliberacao VARCHAR(50),
+            data_transito_julgado DATE,
+            data_final DATE,
+            data_acordao DATE,
+            uf VARCHAR(10),
+            municipio VARCHAR(255),
+            data_source VARCHAR(50) DEFAULT 'TCU',
+            api_reference_id VARCHAR(100),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        '''),
+        ('senado_politicians', '''
+        CREATE TABLE IF NOT EXISTS senado_politicians (
+            id SERIAL PRIMARY KEY,
+            codigo VARCHAR(10),
+            codigo_publico VARCHAR(10),
+            nome VARCHAR(255),
+            nome_completo VARCHAR(255),
+            sexo VARCHAR(20),
+            partido VARCHAR(20),
+            estado VARCHAR(10),
+            email VARCHAR(255),
+            foto_url VARCHAR(500),
+            pagina_url VARCHAR(500),
+            bloco VARCHAR(255),
+            data_source VARCHAR(50) DEFAULT 'SENADO',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
         ''')
     ]
 
@@ -493,7 +530,12 @@ def create_unified_postgres_database():
         "CREATE INDEX IF NOT EXISTS idx_career_politician ON politician_career_history(politician_id)",
         "CREATE INDEX IF NOT EXISTS idx_events_politician ON politician_events(politician_id)",
         "CREATE INDEX IF NOT EXISTS idx_assets_politician_year ON politician_assets(politician_id, declaration_year)",
-        "CREATE INDEX IF NOT EXISTS idx_professional_politician ON politician_professional_background(politician_id)"
+        "CREATE INDEX IF NOT EXISTS idx_professional_politician ON politician_professional_background(politician_id)",
+        "CREATE INDEX IF NOT EXISTS idx_tcu_cpf ON tcu_disqualifications(cpf)",
+        "CREATE INDEX IF NOT EXISTS idx_tcu_data_final ON tcu_disqualifications(data_final)",
+        "CREATE INDEX IF NOT EXISTS idx_senado_codigo ON senado_politicians(codigo)",
+        "CREATE INDEX IF NOT EXISTS idx_senado_nome ON senado_politicians(nome_completo)",
+        "CREATE INDEX IF NOT EXISTS idx_senado_partido_estado ON senado_politicians(partido, estado)"
     ]
 
     # Add unique constraints to prevent duplicates
@@ -505,7 +547,9 @@ def create_unified_postgres_database():
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_assets_unique ON politician_assets(politician_id, declaration_year, asset_sequence)",
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_professional_unique ON politician_professional_background(politician_id, profession_type, profession_name, year_start)",
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_wealth_tracking_unique ON unified_wealth_tracking(politician_id, year)",
-        "CREATE UNIQUE INDEX IF NOT EXISTS idx_sanctions_unique ON vendor_sanctions(cnpj_cpf, sanction_type, sanction_start_date, sanctioning_agency)"
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_sanctions_unique ON vendor_sanctions(cnpj_cpf, sanction_type, sanction_start_date, sanctioning_agency)",
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_tcu_unique ON tcu_disqualifications(cpf, processo, deliberacao)",
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_senado_unique ON senado_politicians(codigo)"
     ]
 
     for index_sql in indexes:
@@ -525,19 +569,22 @@ def create_unified_postgres_database():
     cursor.close()
     conn.close()
 
-    print(f"\n🎯 SUCCESS: PostgreSQL database created with all 10 unified schema tables!")
+    print(f"\n🎯 SUCCESS: PostgreSQL database created with all 13 unified schema tables!")
     print("\nTables created:")
     print("1. ✅ unified_politicians (Core entity with 100% field mapping)")
     print("2. ✅ unified_financial_records (All transactions)")
     print("3. ✅ financial_counterparts (Vendor/donor registry)")
-    print("4. ✅ unified_political_networks (Committees and coalitions)")
-    print("5. ✅ unified_wealth_tracking (Asset summaries)")
-    print("6. ✅ politician_career_history (External mandates)")
-    print("7. ✅ politician_events (Parliamentary activity)")
-    print("8. ✅ politician_assets (Individual TSE assets)")
-    print("9. ✅ politician_professional_background (Professions and occupations)")
-    print("10. ✅ vendor_sanctions (Portal da Transparência sanctions)")
-    print("\n📊 Database ready for data population following the DATA_POPULATION_GUIDE.md")
+    print("4. ✅ unified_electoral_records (TSE electoral data)")
+    print("5. ✅ unified_political_networks (Committees and coalitions)")
+    print("6. ✅ unified_wealth_tracking (Asset summaries)")
+    print("7. ✅ politician_career_history (External mandates)")
+    print("8. ✅ politician_events (Parliamentary activity)")
+    print("9. ✅ politician_assets (Individual TSE assets)")
+    print("10. ✅ politician_professional_background (Professions and occupations)")
+    print("11. ✅ vendor_sanctions (Portal da Transparência sanctions)")
+    print("12. ✅ tcu_disqualifications (TCU CPF cross-reference)")
+    print("13. ✅ senado_politicians (Senate family/business networks)")
+    print("\n📊 Database ready for cross-source CPF investigation following the DATA_POPULATION_GUIDE.md")
 
 if __name__ == "__main__":
     create_unified_postgres_database()

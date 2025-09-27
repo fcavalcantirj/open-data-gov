@@ -37,6 +37,8 @@ def recreate_all_tables():
         "DROP TABLE IF EXISTS unified_electoral_records CASCADE",
         "DROP TABLE IF EXISTS unified_financial_records CASCADE",
         "DROP TABLE IF EXISTS vendor_sanctions CASCADE",
+        "DROP TABLE IF EXISTS tcu_disqualifications CASCADE",
+        "DROP TABLE IF EXISTS senado_politicians CASCADE",
         "DROP TABLE IF EXISTS financial_counterparts CASCADE",
         "DROP TABLE IF EXISTS unified_politicians CASCADE"
     ]
@@ -509,6 +511,45 @@ def recreate_all_tables():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             CONSTRAINT unique_sanction UNIQUE (cnpj_cpf, sanction_type, sanction_start_date, sanctioning_agency)
         )
+        '''),
+        ('tcu_disqualifications', '''
+        CREATE TABLE tcu_disqualifications (
+            id SERIAL PRIMARY KEY,
+            cpf VARCHAR(11) NOT NULL,
+            nome VARCHAR(255),
+            processo VARCHAR(50),
+            deliberacao VARCHAR(50),
+            data_transito_julgado DATE,
+            data_final DATE,
+            data_acordao DATE,
+            uf VARCHAR(10),
+            municipio VARCHAR(255),
+            data_source VARCHAR(50) DEFAULT 'TCU',
+            api_reference_id VARCHAR(100),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT unique_tcu_disqualification UNIQUE (cpf, processo, deliberacao)
+        )
+        '''),
+        ('senado_politicians', '''
+        CREATE TABLE senado_politicians (
+            id SERIAL PRIMARY KEY,
+            codigo VARCHAR(10),
+            codigo_publico VARCHAR(10),
+            nome VARCHAR(255),
+            nome_completo VARCHAR(255),
+            sexo VARCHAR(20),
+            partido VARCHAR(20),
+            estado VARCHAR(10),
+            email VARCHAR(255),
+            foto_url VARCHAR(500),
+            pagina_url VARCHAR(500),
+            bloco VARCHAR(255),
+            data_source VARCHAR(50) DEFAULT 'SENADO',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT unique_senado_politician UNIQUE (codigo)
+        )
         ''')
     ]
 
@@ -531,7 +572,13 @@ def recreate_all_tables():
         "CREATE INDEX idx_assets_politician_year ON politician_assets(politician_id, declaration_year)",
         "CREATE INDEX idx_professional_politician ON politician_professional_background(politician_id)",
         "CREATE INDEX idx_sanctions_cnpj ON vendor_sanctions(cnpj_cpf)",
-        "CREATE INDEX idx_sanctions_active ON vendor_sanctions(is_active)"
+        "CREATE INDEX idx_sanctions_active ON vendor_sanctions(is_active)",
+        "CREATE INDEX idx_tcu_cpf ON tcu_disqualifications(cpf)",
+        "CREATE INDEX idx_tcu_data_final ON tcu_disqualifications(data_final)",
+        "CREATE INDEX idx_tcu_uf ON tcu_disqualifications(uf)",
+        "CREATE INDEX idx_senado_codigo ON senado_politicians(codigo)",
+        "CREATE INDEX idx_senado_nome ON senado_politicians(nome_completo)",
+        "CREATE INDEX idx_senado_partido_estado ON senado_politicians(partido, estado)"
     ]
 
     for index_sql in indexes:
@@ -556,6 +603,8 @@ def recreate_all_tables():
     print("8. ✅ politician_assets - UNIQUE on (politician_id, declaration_year, asset_sequence)")
     print("9. ✅ politician_professional_background - UNIQUE on (politician_id, profession_type, profession_name, year_start)")
     print("10. ✅ vendor_sanctions - UNIQUE on (cnpj_cpf, sanction_type, sanction_start_date, sanctioning_agency)")
+    print("11. ✅ tcu_disqualifications - UNIQUE on (cpf, processo, deliberacao)")
+    print("12. ✅ senado_politicians - UNIQUE on (codigo)")
 
     print("\n🧪 READY FOR TESTING!")
     print("Run these commands twice to test duplicate prevention:")

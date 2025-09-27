@@ -29,6 +29,8 @@ from cli4.populators.assets import AssetsPopulator, AssetsValidator
 from cli4.populators.professional import ProfessionalPopulator, ProfessionalValidator
 from cli4.populators.events import EventsPopulator, EventsValidator
 from cli4.populators.sanctions import SanctionsPopulator, SanctionsValidator
+from cli4.populators.tcu import TCUPopulator, TCUValidator
+from cli4.populators.senado import SenadoPopulator, SenadoValidator
 
 
 def setup_cli():
@@ -74,6 +76,14 @@ Examples:
   python cli4/main.py populate-sanctions --max-pages 100
   python cli4/main.py populate-sanctions --update-existing
 
+  # Populate TCU disqualifications (NEW!)
+  python cli4/main.py populate-tcu --max-pages 50
+  python cli4/main.py populate-tcu --update-existing
+
+  # Populate Senado politicians (NEW!)
+  python cli4/main.py populate-senado
+  python cli4/main.py populate-senado --update-existing
+
   # Post-process: Calculate aggregate career fields (NEW!)
   python cli4/main.py post-process --fields electoral
 
@@ -86,6 +96,8 @@ Examples:
   python cli4/main.py validate --table assets
   python cli4/main.py validate --table professional
   python cli4/main.py validate --table events
+  python cli4/main.py validate --table tcu
+  python cli4/main.py validate --table senado
   python cli4/main.py validate --table all
         """
     )
@@ -162,13 +174,22 @@ Examples:
     sanctions_parser.add_argument('--max-pages', type=int, default=2000, help='Maximum pages to fetch (default: 2000, ~30k records)')
     sanctions_parser.add_argument('--update-existing', action='store_true', help='Update existing records instead of skipping')
 
+    # TCU disqualifications population
+    tcu_parser = subparsers.add_parser('populate-tcu', help='Populate TCU disqualifications table (corruption detection)')
+    tcu_parser.add_argument('--max-pages', type=int, default=100, help='Maximum pages to fetch (default: 100, reasonable limit)')
+    tcu_parser.add_argument('--update-existing', action='store_true', help='Update existing records instead of skipping')
+
+    # Senado politicians population
+    senado_parser = subparsers.add_parser('populate-senado', help='Populate Senado politicians table (family network detection)')
+    senado_parser.add_argument('--update-existing', action='store_true', help='Update existing records instead of skipping')
+
     # Status commands
     status_parser = subparsers.add_parser('status', help='Show database status')
     status_parser.add_argument('--detailed', action='store_true', help='Show detailed statistics')
 
     # Validation commands
     validate_parser = subparsers.add_parser('validate', help='Validate data tables')
-    validate_parser.add_argument('--table', choices=['politicians', 'financial', 'electoral', 'networks', 'wealth', 'career', 'assets', 'professional', 'events', 'sanctions', 'all'], default='all',
+    validate_parser.add_argument('--table', choices=['politicians', 'financial', 'electoral', 'networks', 'wealth', 'career', 'assets', 'professional', 'events', 'sanctions', 'tcu', 'senado', 'all'], default='all',
                                 help='Table to validate (default: all available tables)')
     validate_parser.add_argument('--limit', type=int, help='Limit number of records to validate')
     validate_parser.add_argument('--detailed', action='store_true', help='Show detailed validation results')
@@ -404,6 +425,37 @@ def main():
 
             print(f"\n🏆 Sanctions population completed: {sanctions_count} records")
 
+        elif args.command == 'populate-tcu':
+            print("⚖️  TCU DISQUALIFICATIONS POPULATION")
+            print("Federal Audit Court disqualifications for corruption detection")
+            print("=" * 60)
+
+            # Initialize TCU populator
+            tcu_populator = TCUPopulator(logger, rate_limiter)
+
+            # Run TCU population
+            tcu_count = tcu_populator.populate(
+                max_pages=args.max_pages,
+                update_existing=args.update_existing
+            )
+
+            print(f"\n🏆 TCU population completed: {tcu_count} records")
+
+        elif args.command == 'populate-senado':
+            print("🏛️  SENADO POLITICIANS POPULATION")
+            print("Senate Federal politicians for family network detection")
+            print("=" * 60)
+
+            # Initialize Senado populator
+            senado_populator = SenadoPopulator(logger, rate_limiter)
+
+            # Run Senado population
+            senado_count = senado_populator.populate(
+                update_existing=args.update_existing
+            )
+
+            print(f"\n🏆 Senado population completed: {senado_count} records")
+
         elif args.command == 'post-process':
             print("📊 POST-PROCESSING: CALCULATE AGGREGATE CAREER FIELDS")
             print("Computing electoral success rates, career timelines, and financial summaries")
@@ -438,7 +490,7 @@ def main():
             # Validation needs ALL data to be populated for comprehensive checks
             required_tables = []
             if args.table == 'all':
-                required_tables = ["politicians", "financial", "electoral", "networks", "wealth", "assets", "professional", "events"]
+                required_tables = ["politicians", "financial", "electoral", "networks", "wealth", "assets", "professional", "events", "sanctions", "tcu", "senado"]
                 DependencyChecker.print_dependency_warning(
                     required_steps=required_tables,
                     current_step="FULL VALIDATION (ALL TABLES)"
@@ -482,6 +534,16 @@ def main():
                 DependencyChecker.print_dependency_warning(
                     required_steps=["sanctions"],
                     current_step="VENDOR SANCTIONS VALIDATION"
+                )
+            elif args.table == 'tcu':
+                DependencyChecker.print_dependency_warning(
+                    required_steps=["tcu"],
+                    current_step="TCU DISQUALIFICATIONS VALIDATION"
+                )
+            elif args.table == 'senado':
+                DependencyChecker.print_dependency_warning(
+                    required_steps=["senado"],
+                    current_step="SENADO POLITICIANS VALIDATION"
                 )
 
             # Determine what to validate
@@ -693,6 +755,48 @@ def main():
                     print("👍 Sanctions validation completed - Good compliance with minor issues")
                 else:
                     print("⚠️ Sanctions validation completed - Significant improvements needed")
+
+            if args.table == 'tcu' or args.table == 'all':
+                print("\n🔍 COMPREHENSIVE TCU VALIDATION")
+                print("Validating tcu_disqualifications with corruption detection readiness")
+                print("=" * 60)
+
+                # Initialize TCU validator
+                tcu_validator = TCUValidator()
+                tcu_results = tcu_validator.validate_all_tcu(limit=args.limit)
+
+                # Export results if requested
+                if args.export:
+                    print(f"📄 TCU validation results logged")
+
+                # Show completion message
+                if tcu_results['compliance_score'] >= 90:
+                    print("🏆 TCU validation completed - Excellent compliance! Ready for corruption detection")
+                elif tcu_results['compliance_score'] >= 70:
+                    print("👍 TCU validation completed - Good compliance with minor issues")
+                else:
+                    print("⚠️ TCU validation completed - Significant improvements needed")
+
+            if args.table == 'senado' or args.table == 'all':
+                print("\n🔍 COMPREHENSIVE SENADO VALIDATION")
+                print("Validating senado_politicians with family network detection readiness")
+                print("=" * 60)
+
+                # Initialize Senado validator
+                senado_validator = SenadoValidator(logger)
+                senado_results = senado_validator.validate_all_senado(limit=args.limit)
+
+                # Export results if requested
+                if args.export:
+                    print(f"📄 Senado validation results logged")
+
+                # Show completion message
+                if senado_results['compliance_score'] >= 90:
+                    print("🏆 Senado validation completed - Excellent compliance! Ready for family network detection")
+                elif senado_results['compliance_score'] >= 70:
+                    print("👍 Senado validation completed - Good compliance with minor issues")
+                else:
+                    print("⚠️ Senado validation completed - Significant improvements needed")
 
         else:
             print(f"❌ Unknown command: {args.command}")
