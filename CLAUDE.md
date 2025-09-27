@@ -130,7 +130,7 @@ VALIDATION REQUIREMENTS:
 ### 1. Environment Setup
 ```bash
 # Set database connection
-export POSTGRES_POOL_URL="postgresql://doadmin:AVNS_8IrH5dX8G8spzIEL6I9@weedpedia-prod-postgres-do-user-13240977-0.b.db.ondigitalocean.com:25061/open-data-gov-pool?sslmode=require"
+export POSTGRES_POOL_URL=DEFINED_IN_ENV
 
 # Install dependencies
 pip install -r requirements.txt
