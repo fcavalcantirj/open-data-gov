@@ -122,3 +122,6 @@ settings.local.*
 cache/
 responses/
 .vercel
+
+
+frontend/node_modules/*
