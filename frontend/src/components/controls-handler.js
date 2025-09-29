@@ -327,8 +327,45 @@ class ControlsHandler {
                 .map(([key, value]) => `${value === 10000 ? 'ALL' : value} ${key}`)
                 .join(', ');
 
-            this.elements.reloadData.textContent = `🔄 Load: ${limitText}`;
-            this.elements.reloadData.title = `Will load approximately ${totalNodes >= 10000 ? 'ALL' : totalNodes} total nodes`;
+            this.elements.reloadData.textContent = `🔄 LOAD: ${limitText}`;
+            // Add subtle styling with transparency and blur
+            this.elements.reloadData.style.backgroundColor = 'rgba(46, 204, 113, 0.3)';
+            this.elements.reloadData.style.color = '#2ecc71';
+            this.elements.reloadData.style.border = '1px solid rgba(46, 204, 113, 0.6)';
+            this.elements.reloadData.style.fontWeight = 'bold';
+            this.elements.reloadData.style.cursor = 'pointer';
+            this.elements.reloadData.style.padding = '8px 12px';
+            this.elements.reloadData.style.borderRadius = '6px';
+            this.elements.reloadData.style.backdropFilter = 'blur(4px)';
+            this.elements.reloadData.style.transition = 'all 0.3s ease';
+            this.elements.reloadData.style.animation = 'subtle-pulse 2s infinite';
+
+            // Add CSS keyframes for subtle blinking
+            if (!document.getElementById('button-animation-style')) {
+                const style = document.createElement('style');
+                style.id = 'button-animation-style';
+                style.textContent = `
+                    @keyframes subtle-pulse {
+                        0%, 100% { opacity: 0.7; }
+                        50% { opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            // Add hover effects
+            this.elements.reloadData.onmouseenter = () => {
+                this.elements.reloadData.style.backgroundColor = 'rgba(46, 204, 113, 0.5)';
+                this.elements.reloadData.style.color = 'white';
+                this.elements.reloadData.style.animation = 'none';
+            };
+            this.elements.reloadData.onmouseleave = () => {
+                this.elements.reloadData.style.backgroundColor = 'rgba(46, 204, 113, 0.3)';
+                this.elements.reloadData.style.color = '#2ecc71';
+                this.elements.reloadData.style.animation = 'subtle-pulse 2s infinite';
+            };
+
+            this.elements.reloadData.title = `Click to load approximately ${totalNodes >= 10000 ? 'ALL' : totalNodes} total nodes`;
         }
     }
 

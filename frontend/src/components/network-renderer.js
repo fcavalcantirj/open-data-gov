@@ -22,7 +22,7 @@ class NetworkRenderer {
             politicians: true,
             parties: true,
             companies: true,
-            sanctions: false
+            sanctions: true
         };
         this.connectionFilters = {
             party_membership: true,
@@ -148,9 +148,25 @@ class NetworkRenderer {
      * Apply current filters and update display
      */
     applyFilters() {
+        console.log('🔍 FILTER STATE:', this.filters);
+
         const filteredNodes = this.data.nodes.filter(node => {
-            return this.filters[node.type + 's'] !== false;
+            // Map node types to filter keys
+            const filterKey = {
+                'politician': 'politicians',
+                'party': 'parties',
+                'company': 'companies',
+                'sanction': 'sanctions'
+            }[node.type];
+
+            const isVisible = this.filters[filterKey] === true;
+            if (!isVisible) {
+                console.log(`❌ FILTERING OUT: ${node.type} -> ${filterKey} = ${this.filters[filterKey]}`);
+            }
+            return isVisible;
         });
+
+        console.log(`📊 FILTERED: ${this.data.nodes.length} → ${filteredNodes.length} nodes`);
 
         const filteredLinks = this.data.links.filter(link => {
             // Check if both source and target nodes are visible
@@ -637,7 +653,7 @@ class NetworkRenderer {
         let color;
         switch (node.type) {
             case 'politician':
-                color = '#ff6b6b';  // Red for politicians
+                color = '#ffb366';  // Light orange for politicians
                 break;
             case 'party':
                 color = '#4ecdc4';  // Teal for parties
@@ -646,7 +662,7 @@ class NetworkRenderer {
                 color = '#ffe66d';  // Yellow for companies
                 break;
             case 'sanction':
-                color = '#ff8b94';  // Pink for sanctions
+                color = '#ff6b6b';  // Red for sanctions
                 break;
             default:
                 color = '#ffffff';
