@@ -4,6 +4,7 @@
 
 // Set API URL based on environment
 window.API_URL = window.API_URL || 'https://open-data-gov.onrender.com/api';
+// window.API_URL = window.API_URL || 'http://localhost:8080/api';
 
 // Other configuration options
 window.APP_CONFIG = {

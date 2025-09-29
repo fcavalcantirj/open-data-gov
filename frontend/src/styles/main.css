@@ -152,6 +152,38 @@ body {
     animation: blink 1s infinite;
 }
 
+/* Mobile Toggle Buttons */
+.mobile-toggle {
+    display: none;
+    position: fixed;
+    width: 44px;
+    height: 44px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid #00ff00;
+    border-radius: 8px;
+    color: #00ff00;
+    font-size: 1.2rem;
+    cursor: pointer;
+    z-index: 1002;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.mobile-controls-toggle {
+    top: 70px;
+    left: 10px;
+}
+
+.mobile-info-toggle {
+    top: 70px;
+    right: 10px;
+}
+
+.mobile-toggle:active {
+    transform: scale(0.95);
+    background: rgba(0, 255, 0, 0.2);
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
     #app {
@@ -168,6 +200,13 @@ body {
         grid-template-rows: 60px 1fr;
     }
 
+    /* Show mobile toggles */
+    .mobile-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
     .controls-panel,
     .info-panel {
         position: fixed;
@@ -175,11 +214,15 @@ body {
         z-index: 1001;
         max-height: calc(100vh - 60px);
         overflow-y: auto;
+        background: rgba(0, 0, 0, 0.98);
+        backdrop-filter: blur(10px);
     }
 
     .controls-panel {
-        left: -280px;
+        left: -300px;
+        width: 300px;
         transition: left 0.3s ease;
+        box-shadow: 2px 0 20px rgba(0, 255, 0, 0.3);
     }
 
     .controls-panel.open {
@@ -187,12 +230,50 @@ body {
     }
 
     .info-panel {
-        right: -320px;
+        right: -350px;
+        width: 350px;
         transition: right 0.3s ease;
+        box-shadow: -2px 0 20px rgba(0, 255, 0, 0.3);
     }
 
     .info-panel.open {
         right: 0;
+    }
+
+    /* Hide header stats on mobile to save space */
+    .header-stats {
+        display: none;
+    }
+
+    /* Adjust header for mobile */
+    .app-header {
+        padding: 0 10px;
+    }
+
+    .app-header h1 {
+        font-size: 1rem;
+    }
+}
+
+/* Smaller mobile screens */
+@media (max-width: 600px) {
+    .controls-panel,
+    .info-panel {
+        width: 100%;
+    }
+
+    .controls-panel {
+        left: -100%;
+    }
+
+    .info-panel {
+        right: -100%;
+    }
+
+    /* Make graph full screen on mobile */
+    #3d-graph {
+        border: none;
+        box-shadow: none;
     }
 }
 

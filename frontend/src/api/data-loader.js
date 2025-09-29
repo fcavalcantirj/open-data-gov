@@ -7,6 +7,7 @@ class DataLoader {
     constructor() {
         // Use environment variable or fallback to localhost
         this.apiUrl = window.API_URL || 'https://open-data-gov.onrender.com/api';
+        // this.apiUrl = window.API_URL || 'http://localhost:8080/api';
         this.cache = new Map();
         this.loadingCallbacks = [];
     }

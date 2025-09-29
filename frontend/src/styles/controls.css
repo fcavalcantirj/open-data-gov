@@ -245,3 +245,83 @@ span[id$="-count"] {
 .controls-panel::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 255, 0, 0.5);
 }
+
+/* Mobile Touch Improvements */
+@media (max-width: 900px) {
+    /* Larger touch targets for mobile */
+    button {
+        min-height: 44px;
+        font-size: 0.95rem;
+        padding: 12px 16px;
+    }
+    
+    input[type="checkbox"] {
+        width: 24px;
+        height: 24px;
+        margin-right: 12px;
+    }
+    
+    input[type="checkbox"]:checked::before {
+        font-size: 14px;
+    }
+    
+    select {
+        min-height: 44px;
+        padding: 10px 12px;
+        font-size: 0.95rem;
+    }
+    
+    input[type="range"] {
+        height: 10px;
+        margin: 12px 0;
+    }
+    
+    input[type="range"]::-webkit-slider-thumb {
+        width: 28px;
+        height: 28px;
+    }
+    
+    input[type="range"]::-moz-range-thumb {
+        width: 28px;
+        height: 28px;
+    }
+    
+    label {
+        padding: 6px 0;
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+    }
+    
+    .control-section {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+    }
+    
+    .control-section h3 {
+        font-size: 1rem;
+        margin-bottom: 12px;
+    }
+}
+
+/* Remove hover effects on touch devices */
+@media (hover: none) and (pointer: coarse) {
+    button:hover,
+    select:hover,
+    input[type="checkbox"]:hover,
+    label:hover {
+        /* Keep default state on touch devices */
+        background: inherit;
+        border-color: inherit;
+        color: inherit;
+    }
+    
+    /* Add active state for touch feedback */
+    button:active {
+        background: rgba(0, 255, 0, 0.3) !important;
+        transform: scale(0.98);
+    }
+    
+    select:active {
+        background: rgba(0, 255, 0, 0.2) !important;
+    }
+}

@@ -143,10 +143,56 @@ class PoliticalNetwork3DApp {
             this.handleGlobalKeyboard(e);
         });
 
+        // Mobile toggle buttons
+        this.setupMobileToggles();
+
         // Performance monitoring
         this.setupPerformanceMonitoring();
 
         console.log('✅ Event handlers setup');
+    }
+
+    /**
+     * Setup mobile toggle buttons
+     */
+    setupMobileToggles() {
+        const controlsToggle = document.getElementById('mobile-controls-toggle');
+        const infoToggle = document.getElementById('mobile-info-toggle');
+        const controlsPanel = document.querySelector('.controls-panel');
+        const infoPanel = document.querySelector('.info-panel');
+
+        if (controlsToggle && controlsPanel) {
+            controlsToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                controlsPanel.classList.toggle('open');
+                // Close info panel if open
+                if (infoPanel && infoPanel.classList.contains('open')) {
+                    infoPanel.classList.remove('open');
+                }
+            });
+        }
+
+        if (infoToggle && infoPanel) {
+            infoToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                infoPanel.classList.toggle('open');
+                // Close controls panel if open
+                if (controlsPanel && controlsPanel.classList.contains('open')) {
+                    controlsPanel.classList.remove('open');
+                }
+            });
+        }
+
+        // Close panels when clicking on the graph
+        const graph = document.getElementById('3d-graph');
+        if (graph) {
+            graph.addEventListener('click', () => {
+                if (window.innerWidth <= 900) {
+                    if (controlsPanel) controlsPanel.classList.remove('open');
+                    if (infoPanel) infoPanel.classList.remove('open');
+                }
+            });
+        }
     }
 
     /**
