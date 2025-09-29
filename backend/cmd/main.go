@@ -43,7 +43,7 @@ func main() {
 	config.AllowOrigins = []string{
 		"http://localhost:3000",
 		"http://127.0.0.1:3000",
-		"https://your-frontend-domain.com", // Add your production domain
+		"https://open-data-gov.vercel.app", // Add your production domain
 	}
 	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
