@@ -519,7 +519,7 @@ class PoliticalNetwork3DApp {
             // Load API version from backend
             let apiVersion = 'N/A';
             try {
-                const apiResponse = await fetch('http://localhost:8080/api/version');
+                const apiResponse = await fetch('https://open-data-gov.onrender.com/version');
                 if (apiResponse.ok) {
                     const apiData = await apiResponse.json();
                     apiVersion = apiData.version || apiData.data?.version || 'unknown';
