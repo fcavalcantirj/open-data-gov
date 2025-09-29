@@ -108,9 +108,28 @@ class PortalTransparenciaClient:
             print(f"Error fetching public servants: {e}")
             return {}
 
+    def get_cepim_sanctions(self, cnpj: Optional[str] = None, page: int = 1) -> Dict[str, Any]:
+        """
+        Get CEPIM sanctions (Cadastro de Empresas Punidas)
+        """
+        url = f"{self.base_url}cepim"
+        params = {'pagina': page}
+
+        if cnpj:
+            cnpj_clean = re.sub(r'[^\d]', '', cnpj)
+            params['cnpjSancionado'] = cnpj_clean
+
+        try:
+            response = self.session.get(url, params=params)
+            response.raise_for_status()
+            return response.json()
+        except Exception as e:
+            print(f"Error fetching CEPIM sanctions: {e}")
+            return {}
+
     def get_nepotism_register(self, cpf: Optional[str] = None, page: int = 1) -> Dict[str, Any]:
         """
-        Get nepotism register information
+        Get nepotism register information (CNEP)
         """
         url = f"{self.base_url}cnep"
         params = {'pagina': page}

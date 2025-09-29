@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brazilian Political Network 3D</title>
+    <link rel="stylesheet" href="src/styles/main.css">
+    <link rel="stylesheet" href="src/styles/controls.css">
+    <link rel="stylesheet" href="src/styles/info-panel.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <h1>OPEN DATA GOV</h1>
+            <div class="header-stats">
+                <span id="node-count">Nodes: 0</span>
+                <span id="link-count">Links: 0</span>
+                <span id="zoom-level">Zoom: 0.0</span>
+                <span id="frontend-version">Frontend: v0.0.0</span>
+                <span id="api-version">API: v0.0.0</span>
+            </div>
+        </header>
+
+        <!-- Controls Panel -->
+        <div class="controls-panel">
+            <div class="control-section">
+                <h3>🎯 Focus Mode</h3>
+                <select id="focus-mode">
+                    <option value="overview">🌍 Overview</option>
+                    <option value="politicians">👥 Politicians</option>
+                    <option value="parties">🏛️ Parties</option>
+                    <option value="companies">🏢 Companies</option>
+                    <option value="corruption">⚠️ Corruption Networks</option>
+                </select>
+            </div>
+
+            <div class="control-section">
+                <h3>📊 Data Size</h3>
+                <label>
+                    Politicians: <span id="politicians-limit-value">100</span>
+                    <input type="range" id="politicians-limit" min="50" max="1000" value="100" step="50">
+                </label>
+                <label>
+                    Companies: <span id="companies-limit-value">100</span>
+                    <input type="range" id="companies-limit" min="50" max="1000" value="100" step="50">
+                </label>
+                <label>
+                    Sanctions: <span id="sanctions-limit-value">100</span>
+                    <input type="range" id="sanctions-limit" min="50" max="500" value="100" step="50">
+                </label>
+                <button id="reload-data">🔄 Reload Network</button>
+            </div>
+
+            <div class="control-section">
+                <h3>🔍 Filters</h3>
+                <label>
+                    <input type="checkbox" id="show-politicians" checked>
+                    👥 Politicians (<span id="politicians-count">0</span>)
+                </label>
+                <label>
+                    <input type="checkbox" id="show-parties" checked>
+                    🏛️ Parties (<span id="parties-count">0</span>)
+                </label>
+                <label>
+                    <input type="checkbox" id="show-companies" checked>
+                    🏢 Companies (<span id="companies-count">0</span>)
+                </label>
+                <label>
+                    <input type="checkbox" id="show-sanctions">
+                    ⚠️ Sanctions (<span id="sanctions-count">0</span>)
+                </label>
+            </div>
+
+            <div class="control-section">
+                <h3>🔗 Connections</h3>
+                <label>
+                    <input type="checkbox" id="show-party-membership" checked>
+                    🎭 Party Membership
+                </label>
+                <label>
+                    <input type="checkbox" id="show-financial" checked>
+                    💰 Financial Transactions
+                </label>
+                <label>
+                    <input type="checkbox" id="show-donations">
+                    🎁 Campaign Donations
+                </label>
+                <label>
+                    <input type="checkbox" id="show-corruption-paths">
+                    🚨 Corruption Paths
+                </label>
+            </div>
+
+            <div class="control-section">
+                <h3>⚙️ Controls</h3>
+                <button id="reset-camera">🎥 Reset Camera</button>
+                <button id="toggle-physics" class="active">⚡ Physics: ON</button>
+            </div>
+        </div>
+
+        <!-- Info Panel -->
+        <div class="info-panel" id="info-panel">
+            <div class="info-header">
+                <h3 id="info-title">Select a node to see details</h3>
+                <button id="close-info">✕</button>
+            </div>
+            <div class="info-content" id="info-content">
+                <p>Click on any politician, party, or company to see detailed information and connections.</p>
+            </div>
+        </div>
+
+        <!-- 3D Graph Container -->
+        <div id="3d-graph"></div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loading-overlay">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <h2>Loading Political Network Data...</h2>
+                <p id="loading-status">Initializing...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/3d-force-graph@1.72.3/dist/3d-force-graph.min.js"></script>
+    <script src="src/config.js"></script>
+    <script src="src/api/data-loader.js"></script>
+    <script src="src/components/network-renderer.js"></script>
+    <script src="src/components/controls-handler.js"></script>
+    <script src="src/components/info-panel.js"></script>
+    <script src="src/main.js"></script>
+</body>
+</html>

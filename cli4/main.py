@@ -7,6 +7,7 @@ Rock-solid implementation starting with politicians table only
 import argparse
 import sys
 import os
+import time
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -23,6 +24,7 @@ from cli4.modules.rate_limiter import CLI4RateLimiter
 from cli4.populators import CLI4PoliticianPopulator, CLI4PoliticianValidator
 from cli4.populators.financial import CLI4CounterpartsPopulator, CLI4RecordsPopulator, CLI4FinancialValidator
 from cli4.populators.electoral import ElectoralRecordsPopulator, ElectoralRecordsValidator
+from cli4.populators.parties import CLI4PartiesPopulator, CLI4PartiesValidator
 from cli4.populators.wealth import CLI4WealthPopulator, CLI4WealthValidator
 from cli4.populators.career import CareerPopulator, CareerValidator
 from cli4.populators.assets import AssetsPopulator, AssetsValidator
@@ -48,11 +50,18 @@ Examples:
   # Populate politicians table
   python cli4/main.py populate --limit 10
 
+  # Populate ALL politicians (including inactive)
+  python cli4/main.py populate --include-inactive
+
   # Populate financial records
   python cli4/main.py populate-financial
 
   # Populate electoral records (NEW!)
   python cli4/main.py populate-electoral
+
+  # Populate political parties (NEW!)
+  python cli4/main.py populate-parties --limit 10
+  python cli4/main.py populate-parties --legislatura-id 57
 
   # Populate wealth tracking (NEW!)
   python cli4/main.py populate-wealth --politician-ids 1 2 3
@@ -86,12 +95,15 @@ Examples:
 
   # Post-process: Calculate aggregate career fields (NEW!)
   python cli4/main.py post-process --fields electoral
+  python cli4/main.py post-process --enhanced --fields corruption
+  python cli4/main.py post-process --enhanced --fields all
 
   # Show status
   python cli4/main.py status
 
   # Validate specific tables
   python cli4/main.py validate --table electoral
+  python cli4/main.py validate --table parties
   python cli4/main.py validate --table wealth
   python cli4/main.py validate --table assets
   python cli4/main.py validate --table professional
@@ -118,6 +130,7 @@ Examples:
     pop_parser.add_argument('--limit', type=int, help='Limit number of politicians to process')
     pop_parser.add_argument('--start-id', type=int, help='Start from specific deputy ID')
     pop_parser.add_argument('--active-only', action='store_true', default=True, help='Process only active deputies')
+    pop_parser.add_argument('--include-inactive', action='store_true', default=False, help='Include inactive deputies (on leave, vacant seats, etc.)')
     pop_parser.add_argument('--resume-from', type=int, help='Resume from specific politician ID')
 
     # Financial population commands
@@ -135,6 +148,13 @@ Examples:
                                  help='Election years to process (default: 2018 2020 2022)')
     electoral_parser.add_argument('--force-refresh', action='store_true',
                                  help='Refresh existing records (skip duplicate check)')
+
+    # Parties population commands (NEW)
+    parties_parser = subparsers.add_parser('populate-parties', help='Populate political parties and memberships tables')
+    parties_parser.add_argument('--limit', type=int, help='Limit number of parties to process')
+    parties_parser.add_argument('--legislatura-id', type=int, help='Legislature ID to process (default: 57)')
+    parties_parser.add_argument('--force-refresh', action='store_true',
+                                help='Force refresh existing records (skip duplicate check)')
 
     # Network population commands (NEW)
     network_parser = subparsers.add_parser('populate-networks', help='Populate political networks table')
@@ -169,10 +189,25 @@ Examples:
     events_parser.add_argument('--politician-ids', type=int, nargs='+', help='Specific politician IDs to process')
     events_parser.add_argument('--days-back', type=int, default=365, help='Days back to fetch events (default: 365)')
 
-    # Sanctions population
-    sanctions_parser = subparsers.add_parser('populate-sanctions', help='Populate vendor sanctions table (corruption detection)')
-    sanctions_parser.add_argument('--max-pages', type=int, default=2000, help='Maximum pages to fetch (default: 2000, ~30k records)')
+    # Comprehensive sanctions population (ALL endpoints)
+    sanctions_parser = subparsers.add_parser('populate-sanctions', help='Populate ALL sanctions: CEIS + CEPIM + CNEP (comprehensive corruption detection)')
+    sanctions_parser.add_argument('--max-pages', type=int, default=500, help='Maximum pages per endpoint (default: 500)')
     sanctions_parser.add_argument('--update-existing', action='store_true', help='Update existing records instead of skipping')
+
+    # CEIS sanctions population (individual)
+    ceis_parser = subparsers.add_parser('populate-ceis', help='Populate CEIS sanctions only (Empresas Inidôneas e Suspensas)')
+    ceis_parser.add_argument('--max-pages', type=int, default=500, help='Maximum pages (default: 500)')
+    ceis_parser.add_argument('--update-existing', action='store_true', help='Update existing records')
+
+    # CEPIM sanctions population (CRITICAL MISSING DATA)
+    cepim_parser = subparsers.add_parser('populate-cepim', help='Populate CEPIM sanctions (CRITICAL: missing from corruption detection)')
+    cepim_parser.add_argument('--max-pages', type=int, default=500, help='Maximum pages (default: 500)')
+    cepim_parser.add_argument('--update-existing', action='store_true', help='Update existing records')
+
+    # CNEP sanctions population
+    cnep_parser = subparsers.add_parser('populate-cnep', help='Populate CNEP sanctions (CRITICAL: missing from corruption detection)')
+    cnep_parser.add_argument('--max-pages', type=int, default=500, help='Maximum pages (default: 500)')
+    cnep_parser.add_argument('--update-existing', action='store_true', help='Update existing records')
 
     # TCU disqualifications population
     tcu_parser = subparsers.add_parser('populate-tcu', help='Populate TCU disqualifications table (corruption detection)')
@@ -189,20 +224,22 @@ Examples:
 
     # Validation commands
     validate_parser = subparsers.add_parser('validate', help='Validate data tables')
-    validate_parser.add_argument('--table', choices=['politicians', 'financial', 'electoral', 'networks', 'wealth', 'career', 'assets', 'professional', 'events', 'sanctions', 'tcu', 'senado', 'all'], default='all',
+    validate_parser.add_argument('--table', choices=['politicians', 'financial', 'electoral', 'parties', 'networks', 'wealth', 'career', 'assets', 'professional', 'events', 'sanctions', 'tcu', 'senado', 'all'], default='all',
                                 help='Table to validate (default: all available tables)')
     validate_parser.add_argument('--limit', type=int, help='Limit number of records to validate')
     validate_parser.add_argument('--detailed', action='store_true', help='Show detailed validation results')
     validate_parser.add_argument('--fix', action='store_true', help='Attempt to fix validation issues')
     validate_parser.add_argument('--export', help='Export validation results to file (JSON/CSV)')
 
-    # Post-processing commands (NEW)
-    postprocess_parser = subparsers.add_parser('post-process', help='Calculate aggregate career fields')
+    # Post-processing commands (ENHANCED)
+    postprocess_parser = subparsers.add_parser('post-process', help='Calculate comprehensive aggregate fields with corruption detection')
     postprocess_parser.add_argument('--politician-ids', type=int, nargs='+', help='Specific politician IDs to process')
-    postprocess_parser.add_argument('--fields', choices=['electoral', 'financial', 'all'], default='all',
+    postprocess_parser.add_argument('--fields', choices=['electoral', 'financial', 'corruption', 'networks', 'career', 'wealth', 'all'], default='all',
                                    help='Which aggregate fields to calculate (default: all)')
     postprocess_parser.add_argument('--force-refresh', action='store_true',
                                    help='Recalculate all fields even if already populated')
+    postprocess_parser.add_argument('--enhanced', action='store_true',
+                                   help='Use enhanced post-processor with corruption detection and family networks')
 
     return parser
 
@@ -260,7 +297,7 @@ def main():
             created_ids = populator.populate(
                 limit=args.limit,
                 start_id=args.start_id,
-                active_only=args.active_only,
+                active_only=not args.include_inactive,  # If include_inactive=True, then active_only=False
                 resume_from=args.resume_from
             )
 
@@ -313,6 +350,23 @@ def main():
 
             print(f"\n🏆 Electoral population completed: {electoral_count} records")
             print(f"   Election years processed: {', '.join(map(str, args.election_years))}")
+
+        elif args.command == 'populate-parties':
+            print("🏛️ POLITICAL PARTIES POPULATION")
+            print("Political parties and membership relationships from Câmara")
+            print("=" * 60)
+
+            # Initialize parties populator
+            parties_populator = CLI4PartiesPopulator(logger, rate_limiter)
+
+            # Run parties population
+            parties_count = parties_populator.populate(
+                limit=args.limit,
+                legislatura_id=args.legislatura_id,
+                force_refresh=args.force_refresh
+            )
+
+            print(f"\n🏆 Parties population completed: {len(parties_count)} parties processed")
 
         elif args.command == 'populate-networks':
             print("🤝 POLITICAL NETWORKS POPULATION")
@@ -410,20 +464,111 @@ def main():
             print(f"\n🏆 Events population completed: {events_count} records")
 
         elif args.command == 'populate-sanctions':
-            print("⚠️  VENDOR SANCTIONS POPULATION")
-            print("Portal da Transparência CEIS sanctions for corruption detection")
+            print("⚠️  COMPREHENSIVE VENDOR SANCTIONS POPULATION")
+            print("Portal da Transparência: CEIS + CEPIM + CNEP for complete corruption detection")
+            print("=" * 80)
+
+            total_records = 0
+            start_time = time.time()
+
+            # 1. CEIS - Cadastro de Empresas Inidôneas e Suspensas
+            print("\n🔍 STEP 1/3: CEIS SANCTIONS")
+            print("=" * 50)
+            sanctions_populator = SanctionsPopulator(logger, rate_limiter)
+            ceis_count = sanctions_populator.populate(
+                max_pages=args.max_pages,
+                update_existing=args.update_existing
+            )
+            total_records += ceis_count
+            print(f"✅ CEIS: {ceis_count:,} records")
+
+            # 2. CEPIM - Cadastro de Empresas Punidas
+            print("\n🔍 STEP 2/3: CEPIM SANCTIONS")
+            print("=" * 50)
+            from cli4.populators.sanctions.cepim.populator import CEPIMPopulator
+            cepim_populator = CEPIMPopulator(logger, rate_limiter)
+            cepim_count = cepim_populator.populate(
+                max_pages=args.max_pages,
+                update_existing=args.update_existing
+            )
+            total_records += cepim_count
+            print(f"✅ CEPIM: {cepim_count:,} records")
+
+            # 3. CNEP - Cadastro Nacional de Empresas Punidas
+            print("\n🔍 STEP 3/3: CNEP SANCTIONS")
+            print("=" * 50)
+            from cli4.populators.sanctions.cnep.populator import CNEPPopulator
+            cnep_populator = CNEPPopulator(logger, rate_limiter)
+            cnep_count = cnep_populator.populate(
+                max_pages=args.max_pages,
+                update_existing=args.update_existing
+            )
+            total_records += cnep_count
+            print(f"✅ CNEP: {cnep_count:,} records")
+
+            # Final comprehensive summary
+            elapsed_time = time.time() - start_time
+            print(f"\n🏆 COMPREHENSIVE SANCTIONS POPULATION COMPLETED")
+            print("=" * 60)
+            print(f"📊 CEIS:  {ceis_count:,} records")
+            print(f"📊 CEPIM: {cepim_count:,} records")
+            print(f"📊 CNEP:  {cnep_count:,} records")
+            print(f"📊 TOTAL: {total_records:,} sanctions records")
+            print(f"⏱️  Total time: {elapsed_time/60:.1f} minutes")
+            print(f"🔥 CRITICAL: Complete sanctions coverage achieved!")
+            print(f"💡 Next: Run 'post-process --enhanced' to recalculate corruption scores")
+
+        elif args.command == 'populate-ceis':
+            print("⚠️  CEIS SANCTIONS POPULATION")
+            print("Portal da Transparência CEIS (Empresas Inidôneas e Suspensas)")
             print("=" * 60)
 
-            # Initialize sanctions populator
+            # Initialize CEIS populator
             sanctions_populator = SanctionsPopulator(logger, rate_limiter)
 
-            # Run sanctions population
-            sanctions_count = sanctions_populator.populate(
+            # Run CEIS population
+            ceis_count = sanctions_populator.populate(
                 max_pages=args.max_pages,
                 update_existing=args.update_existing
             )
 
-            print(f"\n🏆 Sanctions population completed: {sanctions_count} records")
+            print(f"\n✅ CEIS population completed: {ceis_count:,} records")
+
+        elif args.command == 'populate-cepim':
+            print("🚨 CRITICAL: CEPIM SANCTIONS POPULATION")
+            print("MISSING DATA essential for corruption detection!")
+            print("=" * 60)
+
+            from cli4.populators.sanctions.cepim.populator import CEPIMPopulator
+            cepim_populator = CEPIMPopulator(logger, rate_limiter)
+
+            # Run CEPIM population
+            cepim_count = cepim_populator.populate(
+                max_pages=args.max_pages,
+                update_existing=args.update_existing
+            )
+
+            print(f"\n🔥 CEPIM POPULATION COMPLETED: {cepim_count:,} records")
+            print("💡 CRITICAL: This data was missing from corruption detection!")
+            print("💡 Next: Run 'post-process --enhanced' to recalculate corruption scores")
+
+        elif args.command == 'populate-cnep':
+            print("🚨 CRITICAL: CNEP SANCTIONS POPULATION")
+            print("MISSING DATA essential for corruption detection!")
+            print("=" * 60)
+
+            from cli4.populators.sanctions.cnep.populator import CNEPPopulator
+            cnep_populator = CNEPPopulator(logger, rate_limiter)
+
+            # Run CNEP population
+            cnep_count = cnep_populator.populate(
+                max_pages=args.max_pages,
+                update_existing=args.update_existing
+            )
+
+            print(f"\n🔥 CNEP POPULATION COMPLETED: {cnep_count:,} records")
+            print("💡 CRITICAL: This data was missing from corruption detection!")
+            print("💡 Next: Run 'post-process --enhanced' to recalculate corruption scores")
 
         elif args.command == 'populate-tcu':
             print("⚖️  TCU DISQUALIFICATIONS POPULATION")
@@ -457,15 +602,22 @@ def main():
             print(f"\n🏆 Senado population completed: {senado_count} records")
 
         elif args.command == 'post-process':
-            print("📊 POST-PROCESSING: CALCULATE AGGREGATE CAREER FIELDS")
-            print("Computing electoral success rates, career timelines, and financial summaries")
-            print("=" * 70)
+            if args.enhanced:
+                print("📊 ENHANCED POST-PROCESSING: COMPREHENSIVE AGGREGATE FIELDS")
+                print("Computing corruption detection, family networks, career progression, and wealth analysis")
+                print("=" * 80)
 
-            # Import the post-processor (we'll create this next)
-            from cli4.populators.metrics import CLI4PostProcessor
+                # Import the enhanced post-processor
+                from cli4.populators.metrics_enhanced import EnhancedCLI4PostProcessor
+                post_processor = EnhancedCLI4PostProcessor(logger, rate_limiter)
+            else:
+                print("📊 POST-PROCESSING: CALCULATE AGGREGATE CAREER FIELDS")
+                print("Computing electoral success rates, career timelines, and financial summaries")
+                print("=" * 70)
 
-            # Initialize post-processor
-            post_processor = CLI4PostProcessor(logger, rate_limiter)
+                # Import the standard post-processor
+                from cli4.populators.metrics import CLI4PostProcessor
+                post_processor = CLI4PostProcessor(logger, rate_limiter)
 
             # Run post-processing
             updated_count = post_processor.calculate_aggregate_fields(
@@ -474,7 +626,8 @@ def main():
                 force_refresh=args.force_refresh
             )
 
-            print(f"\n🏆 Post-processing completed: {updated_count} politicians updated")
+            processor_type = "Enhanced" if args.enhanced else "Standard"
+            print(f"\n🏆 {processor_type} post-processing completed: {updated_count} politicians updated")
             print(f"   Fields calculated: {args.fields}")
 
         elif args.command == 'status':
@@ -490,7 +643,7 @@ def main():
             # Validation needs ALL data to be populated for comprehensive checks
             required_tables = []
             if args.table == 'all':
-                required_tables = ["politicians", "financial", "electoral", "networks", "wealth", "assets", "professional", "events", "sanctions", "tcu", "senado"]
+                required_tables = ["politicians", "financial", "electoral", "parties", "networks", "wealth", "assets", "professional", "events", "sanctions", "tcu", "senado"]
                 DependencyChecker.print_dependency_warning(
                     required_steps=required_tables,
                     current_step="FULL VALIDATION (ALL TABLES)"
@@ -504,6 +657,11 @@ def main():
                 DependencyChecker.print_dependency_warning(
                     required_steps=["politicians", "electoral"],
                     current_step="ELECTORAL VALIDATION"
+                )
+            elif args.table == 'parties':
+                DependencyChecker.print_dependency_warning(
+                    required_steps=["parties"],
+                    current_step="PARTIES VALIDATION"
                 )
             elif args.table == 'networks':
                 DependencyChecker.print_dependency_warning(
@@ -607,6 +765,27 @@ def main():
                     print("👍 Electoral validation completed - Good compliance with minor issues")
                 else:
                     print("⚠️ Electoral validation completed - Significant improvements needed")
+
+            if args.table == 'parties' or args.table == 'all':
+                print("\n🔍 COMPREHENSIVE PARTIES VALIDATION")
+                print("Validating political_parties and party_memberships tables")
+                print("=" * 60)
+
+                # Initialize parties validator
+                parties_validator = CLI4PartiesValidator()
+                parties_results = parties_validator.validate_all_parties(limit=args.limit)
+
+                # Export results if requested
+                if args.export:
+                    print(f"📄 Parties validation results logged")
+
+                # Show completion message
+                if parties_results['compliance_score'] >= 90:
+                    print("🏆 Parties validation completed - Excellent compliance!")
+                elif parties_results['compliance_score'] >= 70:
+                    print("👍 Parties validation completed - Good compliance with minor issues")
+                else:
+                    print("⚠️ Parties validation completed - Significant improvements needed")
 
             if args.table == 'networks' or args.table == 'all':
                 print("\n🔍 COMPREHENSIVE NETWORKS VALIDATION")

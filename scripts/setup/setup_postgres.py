@@ -507,6 +507,41 @@ def create_unified_postgres_database():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
+        '''),
+        ('political_parties', '''
+        CREATE TABLE IF NOT EXISTS political_parties (
+            id INTEGER PRIMARY KEY,
+            nome VARCHAR(255) NOT NULL,
+            sigla VARCHAR(20) NOT NULL,
+            numero_eleitoral INTEGER,
+            status VARCHAR(50) DEFAULT 'Ativo',
+            lider_atual VARCHAR(255),
+            lider_id INTEGER,
+            lider_estado VARCHAR(10),
+            lider_legislatura INTEGER,
+            total_membros INTEGER DEFAULT 0,
+            total_efetivos INTEGER DEFAULT 0,
+            legislatura_id INTEGER,
+            logo_url VARCHAR(500),
+            uri_membros VARCHAR(500),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        '''),
+        ('party_memberships', '''
+        CREATE TABLE IF NOT EXISTS party_memberships (
+            id SERIAL PRIMARY KEY,
+            party_id INTEGER NOT NULL,
+            deputy_id INTEGER NOT NULL,
+            deputy_name VARCHAR(255),
+            legislatura_id INTEGER,
+            status VARCHAR(50) DEFAULT 'Ativo',
+            data_inicio DATE,
+            data_fim DATE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (party_id) REFERENCES political_parties(id),
+            FOREIGN KEY (deputy_id) REFERENCES unified_politicians(deputy_id)
+        )
         ''')
     ]
 
@@ -535,7 +570,12 @@ def create_unified_postgres_database():
         "CREATE INDEX IF NOT EXISTS idx_tcu_data_final ON tcu_disqualifications(data_final)",
         "CREATE INDEX IF NOT EXISTS idx_senado_codigo ON senado_politicians(codigo)",
         "CREATE INDEX IF NOT EXISTS idx_senado_nome ON senado_politicians(nome_completo)",
-        "CREATE INDEX IF NOT EXISTS idx_senado_partido_estado ON senado_politicians(partido, estado)"
+        "CREATE INDEX IF NOT EXISTS idx_senado_partido_estado ON senado_politicians(partido, estado)",
+        "CREATE INDEX IF NOT EXISTS idx_parties_sigla ON political_parties(sigla)",
+        "CREATE INDEX IF NOT EXISTS idx_parties_legislatura ON political_parties(legislatura_id)",
+        "CREATE INDEX IF NOT EXISTS idx_party_memberships_party ON party_memberships(party_id)",
+        "CREATE INDEX IF NOT EXISTS idx_party_memberships_deputy ON party_memberships(deputy_id)",
+        "CREATE INDEX IF NOT EXISTS idx_party_memberships_legislatura ON party_memberships(legislatura_id)"
     ]
 
     # Add unique constraints to prevent duplicates
@@ -549,7 +589,9 @@ def create_unified_postgres_database():
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_wealth_tracking_unique ON unified_wealth_tracking(politician_id, year)",
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_sanctions_unique ON vendor_sanctions(cnpj_cpf, sanction_type, sanction_start_date, sanctioning_agency)",
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_tcu_unique ON tcu_disqualifications(cpf, processo, deliberacao)",
-        "CREATE UNIQUE INDEX IF NOT EXISTS idx_senado_unique ON senado_politicians(codigo)"
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_senado_unique ON senado_politicians(codigo)",
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_parties_unique ON political_parties(id, legislatura_id)",
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_party_memberships_unique ON party_memberships(party_id, deputy_id, legislatura_id)"
     ]
 
     for index_sql in indexes:
@@ -563,6 +605,104 @@ def create_unified_postgres_database():
         cursor.execute(constraint_sql)
 
     print("✓ Created unique constraints")
+
+    # Apply Enhanced Politician Fields Upgrade (Corruption Detection + Family Networks)
+    print("\nApplying enhanced politician fields upgrade...")
+    enhanced_fields_sql = """
+    -- ENHANCED POLITICIAN AGGREGATE FIELDS UPGRADE
+    -- Adds corruption detection, family networks, and comprehensive career metrics
+    ALTER TABLE unified_politicians
+
+    -- CORRUPTION DETECTION METRICS
+    ADD COLUMN IF NOT EXISTS tcu_disqualifications_total INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS tcu_disqualifications_active INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS tcu_first_disqualification DATE,
+    ADD COLUMN IF NOT EXISTS tcu_latest_disqualification DATE,
+    ADD COLUMN IF NOT EXISTS sanctioned_vendors_count INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS sanctioned_vendors_total_sanctions INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS sanctioned_vendors_amount DECIMAL(15,2) DEFAULT 0.0,
+    ADD COLUMN IF NOT EXISTS corruption_risk_score DECIMAL(5,2) DEFAULT 0.0,
+
+    -- FAMILY NETWORK ANALYSIS
+    ADD COLUMN IF NOT EXISTS family_senators_count INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS family_deputies_count INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS family_parties_senado TEXT,
+    ADD COLUMN IF NOT EXISTS family_parties_camara TEXT,
+    ADD COLUMN IF NOT EXISTS political_network_types INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS total_political_networks INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS leadership_positions_count INTEGER DEFAULT 0,
+
+    -- CAREER PROGRESSION METRICS
+    ADD COLUMN IF NOT EXISTS career_unique_offices INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS career_total_mandates INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS career_start_year INTEGER,
+    ADD COLUMN IF NOT EXISTS career_latest_year INTEGER,
+    ADD COLUMN IF NOT EXISTS career_span_years INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS career_states_served INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS professional_background_types INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS professional_background_total INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS professional_background_list TEXT,
+    ADD COLUMN IF NOT EXISTS parliamentary_events_total INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS parliamentary_event_types INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS parliamentary_attendance_rate DECIMAL(5,2) DEFAULT 0.0,
+
+    -- WEALTH PROGRESSION METRICS
+    ADD COLUMN IF NOT EXISTS wealth_declarations_count INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS wealth_first_year INTEGER,
+    ADD COLUMN IF NOT EXISTS wealth_latest_year INTEGER,
+    ADD COLUMN IF NOT EXISTS wealth_lowest_declared DECIMAL(15,2),
+    ADD COLUMN IF NOT EXISTS wealth_highest_declared DECIMAL(15,2),
+    ADD COLUMN IF NOT EXISTS wealth_average_declared DECIMAL(15,2),
+    ADD COLUMN IF NOT EXISTS wealth_total_growth DECIMAL(15,2) DEFAULT 0.0,
+    ADD COLUMN IF NOT EXISTS asset_types_diversity INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS total_individual_assets INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS total_individual_asset_value DECIMAL(15,2) DEFAULT 0.0,
+    ADD COLUMN IF NOT EXISTS average_individual_asset_value DECIMAL(15,2) DEFAULT 0.0;
+    """
+
+    cursor.execute(enhanced_fields_sql)
+    print("✓ Applied enhanced politician fields")
+
+    # Create enhanced indexes
+    enhanced_indexes = [
+        "CREATE INDEX IF NOT EXISTS idx_politicians_corruption_risk ON unified_politicians(corruption_risk_score)",
+        "CREATE INDEX IF NOT EXISTS idx_politicians_tcu_disqualifications ON unified_politicians(tcu_disqualifications_total)",
+        "CREATE INDEX IF NOT EXISTS idx_politicians_sanctioned_vendors ON unified_politicians(sanctioned_vendors_count)",
+        "CREATE INDEX IF NOT EXISTS idx_politicians_family_network ON unified_politicians(family_senators_count, family_deputies_count)",
+        "CREATE INDEX IF NOT EXISTS idx_politicians_career_span ON unified_politicians(career_span_years)",
+        "CREATE INDEX IF NOT EXISTS idx_politicians_wealth_growth ON unified_politicians(wealth_total_growth)",
+        "CREATE INDEX IF NOT EXISTS idx_politicians_electoral_success ON unified_politicians(electoral_success_rate)",
+        "CREATE INDEX IF NOT EXISTS idx_politicians_corruption_composite ON unified_politicians(corruption_risk_score, tcu_disqualifications_total, sanctioned_vendors_count)",
+        "CREATE INDEX IF NOT EXISTS idx_politicians_family_network_composite ON unified_politicians(family_senators_count, family_deputies_count, total_political_networks)"
+    ]
+
+    for index_sql in enhanced_indexes:
+        cursor.execute(index_sql)
+
+    print("✓ Created enhanced field indexes")
+
+    # Add enhanced validation constraints
+    enhanced_constraints_sql = """
+    ALTER TABLE unified_politicians
+    ADD CONSTRAINT IF NOT EXISTS check_corruption_risk_range CHECK (corruption_risk_score >= 0 AND corruption_risk_score <= 100),
+    ADD CONSTRAINT IF NOT EXISTS check_electoral_success_range CHECK (electoral_success_rate >= 0 AND electoral_success_rate <= 100),
+    ADD CONSTRAINT IF NOT EXISTS check_attendance_range CHECK (parliamentary_attendance_rate >= 0 AND parliamentary_attendance_rate <= 100),
+    ADD CONSTRAINT IF NOT EXISTS check_non_negative_counts CHECK (
+        tcu_disqualifications_total >= 0 AND
+        sanctioned_vendors_count >= 0 AND
+        family_senators_count >= 0 AND
+        family_deputies_count >= 0 AND
+        career_unique_offices >= 0 AND
+        wealth_declarations_count >= 0
+    );
+    """
+
+    try:
+        cursor.execute(enhanced_constraints_sql)
+        print("✓ Applied enhanced validation constraints")
+    except psycopg2.errors.DuplicateObject:
+        print("✓ Enhanced validation constraints already exist")
+        conn.rollback()
 
     # Commit changes and close connection
     conn.commit()
@@ -584,6 +724,14 @@ def create_unified_postgres_database():
     print("11. ✅ vendor_sanctions (Portal da Transparência sanctions)")
     print("12. ✅ tcu_disqualifications (TCU CPF cross-reference)")
     print("13. ✅ senado_politicians (Senate family/business networks)")
+    print("14. ✅ political_parties (Party registry and metadata)")
+    print("15. ✅ party_memberships (Deputy-party relationships)")
+    print("\n🚀 ENHANCED FEATURES READY:")
+    print("✅ Corruption Detection: TCU disqualifications + vendor sanctions correlation")
+    print("✅ Family Networks: Cross-chamber surname analysis (Senate + Chamber)")
+    print("✅ Political Parties: Complete party-deputy relationship mapping")
+    print("✅ Career Analytics: 35+ aggregate fields for comprehensive profiling")
+    print("✅ Enhanced Post-Processing: Ready for python cli4/main.py post-process --enhanced")
     print("\n📊 Database ready for cross-source CPF investigation following the DATA_POPULATION_GUIDE.md")
 
 if __name__ == "__main__":

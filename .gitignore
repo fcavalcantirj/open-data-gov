@@ -121,3 +121,4 @@ settings.local.*
 # API response caches
 cache/
 responses/
+.vercel

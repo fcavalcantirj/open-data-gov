@@ -172,19 +172,20 @@ System: $(hostname)
 
 Steps (512 politicians):
 1️⃣ Politicians Population (~1-2 hours)
-2️⃣ Financial Records (~24-28 hours) ⚠️⚠️
-3️⃣ Electoral Records (~2-3 hours)
-4️⃣ Network Records (~3-4 hours)
-5️⃣ Career History (~1-2 hours) 📋 NEW!
-6️⃣ Asset Declarations (~1-2 hours) 🏛️ NEW!
-7️⃣ Professional Background (~30-45 min) 💼 NEW!
-8️⃣ Parliamentary Events (~1-2 hours) 🏛️ NEW!
-9️⃣ Vendor Sanctions (~1 hour) ⚠️ CORRUPTION DETECTION!
-🔟 TCU Disqualifications (~30 min) ⚖️ CORRUPTION DETECTION!
-1️⃣1️⃣ Senado Politicians (~15 min) 🏛️ FAMILY NETWORKS!
-1️⃣2️⃣ Post-Processing (~30 min) 📊 CRITICAL!
-1️⃣3️⃣ Wealth Population (~1-2 hours) 💎 OPTIMIZED!
-1️⃣4️⃣ Full Validation (~1-3 min) ✅ ALWAYS LAST
+2️⃣ Political Parties (~15-30 min) 🏛️ NEW!
+3️⃣ Financial Records (~24-28 hours) ⚠️⚠️
+4️⃣ Electoral Records (~2-3 hours)
+5️⃣ Network Records (~3-4 hours)
+6️⃣ Career History (~1-2 hours) 📋 NEW!
+7️⃣ Asset Declarations (~1-2 hours) 🏛️ NEW!
+8️⃣ Professional Background (~30-45 min) 💼 NEW!
+9️⃣ Parliamentary Events (~1-2 hours) 🏛️ NEW!
+🔟 Vendor Sanctions (~1 hour) ⚠️ CORRUPTION DETECTION!
+1️⃣1️⃣ TCU Disqualifications (~30 min) ⚖️ CORRUPTION DETECTION!
+1️⃣2️⃣ Senado Politicians (~15 min) 🏛️ FAMILY NETWORKS!
+1️⃣3️⃣ Post-Processing (~30 min) 📊 CRITICAL!
+1️⃣4️⃣ Wealth Population (~1-2 hours) 💎 OPTIMIZED!
+1️⃣5️⃣ Full Validation (~1-3 min) ✅ ALWAYS LAST
 
 ⏰ Total estimated: 37-49 HOURS
 💡 MUST use tmux/screen - this will run for DAYS!
@@ -193,43 +194,46 @@ Steps (512 politicians):
 # Step 1: Politicians Population
 run_step "POLITICIANS POPULATION" "python cli4/main.py populate"
 
-# Step 2: Financial Population
+# Step 2: Political Parties Population
+run_step "POLITICAL PARTIES POPULATION" "python cli4/main.py populate-parties"
+
+# Step 3: Financial Population
 run_step "FINANCIAL POPULATION" "python cli4/main.py populate-financial"
 
-# Step 3: Electoral Population
+# Step 4: Electoral Population
 run_step "ELECTORAL POPULATION" "python cli4/main.py populate-electoral"
 
-# Step 4: Network Population
+# Step 5: Network Population
 run_step "NETWORK POPULATION" "python cli4/main.py populate-networks"
 
-# Step 5: Career History Population
+# Step 6: Career History Population
 run_step "CAREER HISTORY POPULATION" "python cli4/main.py populate-career"
 
-# Step 6: Assets Population
+# Step 7: Assets Population
 run_step "ASSET DECLARATIONS POPULATION" "python cli4/main.py populate-assets"
 
-# Step 7: Professional Background Population
+# Step 8: Professional Background Population
 run_step "PROFESSIONAL BACKGROUND POPULATION" "python cli4/main.py populate-professional"
 
-# Step 8: Parliamentary Events Population
+# Step 9: Parliamentary Events Population
 run_step "PARLIAMENTARY EVENTS POPULATION" "python cli4/main.py populate-events"
 
-# Step 9: Vendor Sanctions Population (NEW! Corruption Detection)
+# Step 10: Vendor Sanctions Population (NEW! Corruption Detection)
 run_step "VENDOR SANCTIONS POPULATION" "python cli4/main.py populate-sanctions --max-pages 1500"
 
-# Step 10: TCU Disqualifications Population (NEW! Corruption Detection)
+# Step 11: TCU Disqualifications Population (NEW! Corruption Detection)
 run_step "TCU DISQUALIFICATIONS POPULATION" "python cli4/main.py populate-tcu --max-pages 100"
 
-# Step 11: Senado Politicians Population (NEW! Family Networks)
+# Step 12: Senado Politicians Population (NEW! Family Networks)
 run_step "SENADO POLITICIANS POPULATION" "python cli4/main.py populate-senado"
 
-# Step 12: Post-Processing (MUST RUN BEFORE WEALTH!)
-run_step "POST-PROCESSING" "python cli4/main.py post-process"
+# Step 13: Enhanced Post-Processing (MUST RUN BEFORE WEALTH!)
+run_step "ENHANCED POST-PROCESSING" "python cli4/main.py post-process --enhanced"
 
-# Step 13: Wealth Population (DEPENDS ON POST-PROCESSING!)
+# Step 14: Wealth Population (DEPENDS ON POST-PROCESSING!)
 run_step "WEALTH POPULATION" "python cli4/main.py populate-wealth"
 
-# Step 14: Full Validation (ALWAYS LAST)
+# Step 15: Full Validation (ALWAYS LAST)
 run_step "FULL VALIDATION" "python cli4/main.py validate"
 
 # Calculate total duration
@@ -258,6 +262,7 @@ End Time: $(date +'%H:%M')
 
 📊 Final Status:
 ✅ Politicians populated
+✅ Political parties populated (NEW!)
 ✅ Financial records populated (24-28h)
 ✅ Electoral records populated
 ✅ Network records populated

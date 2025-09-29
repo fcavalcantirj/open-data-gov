@@ -1,0 +1,247 @@
+/* Controls Panel Styles */
+.controls-panel {
+    grid-area: controls;
+    background: #000000;
+    border-right: 2px solid #00ff00;
+    padding: 20px;
+    overflow-y: auto;
+    z-index: 999;
+    font-family: 'Courier New', monospace;
+    box-shadow: 2px 0 10px rgba(0, 255, 0, 0.3);
+    max-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.control-section {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+    flex-shrink: 0;
+}
+
+.control-section:last-child {
+    border-bottom: none;
+}
+
+.control-section h3 {
+    color: #00ff00;
+    font-size: 0.9rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 0 5px #00ff00;
+}
+
+.control-section h3::before {
+    content: '[';
+    color: #00ff00;
+}
+
+.control-section h3::after {
+    content: ']';
+    color: #00ff00;
+}
+
+/* Select Dropdown */
+select {
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid rgba(0, 255, 0, 0.4);
+    border-radius: 6px;
+    color: #00ff00;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Courier New', monospace;
+}
+
+select:hover {
+    border-color: #00ff00;
+    background: rgba(0, 255, 0, 0.15);
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+}
+
+select:focus {
+    outline: none;
+    border-color: #00ff00;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+}
+
+select option {
+    background: #000000;
+    color: #00ff00;
+    padding: 8px;
+    font-family: 'Courier New', monospace;
+}
+
+/* Checkbox Labels */
+label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    color: #b8c5d1;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+label:hover {
+    color: #ffffff;
+}
+
+/* Custom Checkbox */
+input[type="checkbox"] {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(0, 255, 0, 0.4);
+    border-radius: 3px;
+    margin-right: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+input[type="checkbox"]:hover {
+    border-color: #00ff00;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+}
+
+input[type="checkbox"]:checked {
+    background: #00ff00;
+    border-color: #00ff00;
+}
+
+input[type="checkbox"]:checked::before {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #000000;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Range Slider */
+input[type="range"] {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(0, 255, 0, 0.1);
+    outline: none;
+    margin: 8px 0;
+    cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #00ff00;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+    transition: all 0.2s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 12px rgba(0, 255, 0, 0.7);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #00ff00;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+    transition: all 0.2s ease;
+}
+
+/* Range Labels */
+label:has(input[type="range"]) {
+    display: block;
+    margin-bottom: 12px;
+}
+
+label span {
+    float: right;
+    color: #00ff00;
+    font-weight: bold;
+    text-shadow: 0 0 3px #00ff00;
+}
+
+/* Buttons */
+button {
+    width: 100%;
+    padding: 10px 16px;
+    margin-bottom: 8px;
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid rgba(0, 255, 0, 0.4);
+    border-radius: 6px;
+    color: #00ff00;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+button:hover {
+    background: rgba(0, 255, 0, 0.2);
+    border-color: #00ff00;
+    color: #ffffff;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+button.active {
+    background: #00ff00;
+    color: #000000;
+    box-shadow: 0 0 12px rgba(0, 255, 0, 0.4);
+    text-shadow: none;
+}
+
+button.active:hover {
+    background: #00dd00;
+}
+
+/* Count Badges */
+span[id$="-count"] {
+    color: #00ff00;
+    font-weight: bold;
+    font-size: 0.8rem;
+    text-shadow: 0 0 3px #00ff00;
+}
+
+/* Scrollbar Styling */
+.controls-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.controls-panel::-webkit-scrollbar-track {
+    background: rgba(0, 255, 0, 0.05);
+    border-radius: 3px;
+}
+
+.controls-panel::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 0, 0.3);
+    border-radius: 3px;
+}
+
+.controls-panel::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 0, 0.5);
+}

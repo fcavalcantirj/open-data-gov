@@ -1,0 +1,328 @@
+/* Info Panel Styles */
+.info-panel {
+    grid-area: info;
+    background: #000000;
+    border-left: 2px solid #00ff00;
+    padding: 0;
+    overflow: hidden;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Courier New', monospace;
+    box-shadow: -2px 0 10px rgba(0, 255, 0, 0.3);
+}
+
+.info-header {
+    padding: 20px;
+    border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0, 255, 0, 0.05);
+}
+
+.info-header h3 {
+    color: #00ff00;
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin: 0;
+    text-shadow: 0 0 5px #00ff00;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.info-header h3::before {
+    content: '[';
+    color: #00ff00;
+}
+
+.info-header h3::after {
+    content: ']';
+    color: #00ff00;
+}
+
+#close-info {
+    width: auto;
+    padding: 6px 10px;
+    margin: 0;
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid rgba(0, 255, 0, 0.4);
+    border-radius: 4px;
+    color: #00ff00;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Courier New', monospace;
+}
+
+#close-info:hover {
+    background: rgba(0, 255, 0, 0.2);
+    color: #ffffff;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+}
+
+.info-content {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+    color: #00ff00;
+    line-height: 1.6;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 3px #00ff00;
+}
+
+/* Entity Card Styles */
+.entity-card {
+    background: rgba(0, 255, 0, 0.05);
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    border-radius: 6px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border-left: 4px solid #00ff00;
+    font-family: 'Courier New', monospace;
+}
+
+.entity-card.politician {
+    border-left-color: #00ff88;
+    background: rgba(0, 255, 136, 0.05);
+}
+
+.entity-card.party {
+    border-left-color: #88ff00;
+    background: rgba(136, 255, 0, 0.05);
+}
+
+.entity-card.company {
+    border-left-color: #ffff00;
+    background: rgba(255, 255, 0, 0.05);
+}
+
+.entity-card.sanction {
+    border-left-color: #ff0088;
+    background: rgba(255, 0, 136, 0.05);
+}
+
+.entity-name {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #00ff00;
+    margin-bottom: 8px;
+    text-shadow: 0 0 5px #00ff00;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.entity-type {
+    display: inline-block;
+    padding: 4px 8px;
+    background: rgba(0, 255, 0, 0.2);
+    border: 1px solid rgba(0, 255, 0, 0.4);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: #00ff00;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    font-family: 'Courier New', monospace;
+}
+
+.entity-details {
+    margin-bottom: 16px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+}
+
+.detail-label {
+    color: #00ff00;
+    font-weight: bold;
+    min-width: 100px;
+    text-shadow: 0 0 3px #00ff00;
+}
+
+.detail-value {
+    color: #00ff88;
+    text-align: right;
+    word-break: break-word;
+    text-shadow: 0 0 3px #00ff88;
+}
+
+/* Connections Section */
+.connections-section {
+    margin-top: 20px;
+}
+
+.connections-title {
+    color: #00ff00;
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    text-shadow: 0 0 5px #00ff00;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.connections-count {
+    background: rgba(0, 255, 0, 0.2);
+    color: #00ff00;
+    border: 1px solid rgba(0, 255, 0, 0.4);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    margin-left: 8px;
+    font-family: 'Courier New', monospace;
+}
+
+.connection-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.connection-item {
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    background: rgba(0, 255, 0, 0.03);
+    border: 1px solid rgba(0, 255, 0, 0.2);
+    border-radius: 4px;
+    border-left: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Courier New', monospace;
+}
+
+.connection-item:hover {
+    background: rgba(0, 255, 0, 0.08);
+    border-left-color: #00ff00;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+}
+
+.connection-item.party-membership {
+    border-left-color: #88ff00;
+}
+
+.connection-item.financial {
+    border-left-color: #ffff00;
+}
+
+.connection-item.donation {
+    border-left-color: #00ff88;
+}
+
+.connection-item.sanction {
+    border-left-color: #ff0088;
+}
+
+.connection-name {
+    color: #00ff00;
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+    text-shadow: 0 0 3px #00ff00;
+}
+
+.connection-type {
+    color: #00ff88;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    text-shadow: 0 0 3px #00ff88;
+}
+
+.connection-value {
+    color: #88ff00;
+    font-size: 0.8rem;
+    float: right;
+    text-shadow: 0 0 3px #88ff00;
+}
+
+/* Action Buttons */
+.action-buttons {
+    padding: 16px 20px;
+    border-top: 1px solid rgba(0, 255, 0, 0.3);
+    background: rgba(0, 255, 0, 0.05);
+}
+
+.action-button {
+    width: 100%;
+    padding: 10px 16px;
+    margin-bottom: 8px;
+    background: rgba(0, 255, 0, 0.1);
+    border: 1px solid rgba(0, 255, 0, 0.4);
+    border-radius: 6px;
+    color: #00ff00;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.action-button:hover {
+    background: rgba(0, 255, 0, 0.2);
+    color: #ffffff;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+}
+
+.action-button:last-child {
+    margin-bottom: 0;
+}
+
+/* Corruption Indicators */
+.corruption-indicator {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin: 2px;
+}
+
+.corruption-indicator.high {
+    background: rgba(255, 75, 75, 0.2);
+    color: #ff4b4b;
+    border: 1px solid rgba(255, 75, 75, 0.4);
+}
+
+.corruption-indicator.medium {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.4);
+}
+
+.corruption-indicator.low {
+    background: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.4);
+}
+
+/* Scrollbar for info panel */
+.info-content::-webkit-scrollbar,
+.connection-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.info-content::-webkit-scrollbar-track,
+.connection-list::-webkit-scrollbar-track {
+    background: rgba(0, 255, 0, 0.05);
+    border-radius: 3px;
+}
+
+.info-content::-webkit-scrollbar-thumb,
+.connection-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 0, 0.3);
+    border-radius: 3px;
+}
+
+.info-content::-webkit-scrollbar-thumb:hover,
+.connection-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 0, 0.5);
+}

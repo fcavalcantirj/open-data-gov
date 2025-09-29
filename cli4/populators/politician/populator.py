@@ -124,6 +124,12 @@ class CLI4PoliticianPopulator:
         if active_only:
             params['ordem'] = 'ASC'
             params['ordenarPor'] = 'nome'
+        else:
+            # Get ALL deputies including inactive ones (on leave, vacant seats, etc.)
+            params['idLegislatura'] = 57  # Current legislature
+            params['itens'] = 1000  # Ensure we get all deputies
+            params['ordem'] = 'ASC'
+            params['ordenarPor'] = 'nome'
 
         response = requests.get(url, params=params)
         response_time = time.time() - start_time
@@ -617,18 +623,96 @@ class CLI4PoliticianPopulator:
         # Default fallback
         return json.dumps(str(social_data))
 
+    def _should_update_field(self, new_value, existing_value, field_name: str) -> bool:
+        """Determine if field should be updated with smart data preservation logic"""
+        # Never overwrite with null/empty values
+        if new_value is None or str(new_value).strip() == '':
+            return False
+
+        # No existing value - always update with new data
+        if existing_value is None or str(existing_value).strip() == '':
+            return True
+
+        # Special handling for JSONB fields (social networks)
+        if field_name == 'social_networks':
+            # Compare normalized JSON - only update if actually different
+            try:
+                import json
+                new_json = json.dumps(new_value, sort_keys=True) if new_value else ''
+                existing_json = json.dumps(existing_value, sort_keys=True) if existing_value else ''
+                return new_json != existing_json
+            except:
+                return str(new_value) != str(existing_value)
+
+        # For all other fields, compare string representations
+        return str(new_value).strip() != str(existing_value).strip()
+
     def _insert_politician(self, politician_data: Dict) -> Optional[int]:
-        """Insert politician record into database"""
+        """Insert or update politician record with smart data preservation"""
         try:
-            # Check if politician already exists
-            existing = database.execute_query(
-                "SELECT id FROM unified_politicians WHERE cpf = %s",
+            # Get full existing record for comparison
+            existing_records = database.execute_query(
+                "SELECT * FROM unified_politicians WHERE cpf = %s",
                 (politician_data['cpf'],)
             )
 
-            if existing:
-                print(f"⚠️ Politician with CPF {politician_data['cpf']} already exists")
-                return existing[0]['id']
+            if existing_records:
+                existing_data = existing_records[0]
+                existing_id = existing_data['id']
+
+                # Smart update logic - only update fields with meaningful changes
+                update_fields = []
+                update_values = []
+                changes_log = []
+
+                # Skip immutable fields
+                immutable_fields = {'id', 'created_at', 'cpf'}
+
+                for field, new_value in politician_data.items():
+                    if field in immutable_fields:
+                        continue
+
+                    existing_value = existing_data.get(field)
+
+                    if self._should_update_field(new_value, existing_value, field):
+                        # Handle SQL function values properly
+                        if new_value == 'NOW()':
+                            update_fields.append(f"{field} = NOW()")
+                        elif new_value == 'CURRENT_DATE':
+                            update_fields.append(f"{field} = CURRENT_DATE")
+                        else:
+                            update_fields.append(f"{field} = %s")
+                            update_values.append(new_value)
+                        changes_log.append(f"{field}: '{existing_value}' → '{new_value}'")
+
+                # Only execute update if there are actual changes
+                if update_fields:
+                    # Add updated_at timestamp
+                    update_fields.append("updated_at = NOW()")
+
+                    query = f"""
+                        UPDATE unified_politicians
+                        SET {', '.join(update_fields)}
+                        WHERE cpf = %s
+                        RETURNING id
+                    """
+
+                    update_values.append(politician_data['cpf'])
+                    result = database.execute_insert_returning(query, tuple(update_values))
+
+                    print(f"🔄 Updated politician {politician_data.get('nome_civil', 'Unknown')}")
+                    for change in changes_log[:3]:  # Show first 3 changes
+                        print(f"    📝 {change}")
+                    if len(changes_log) > 3:
+                        print(f"    📝 ... and {len(changes_log) - 3} more changes")
+
+                    return result[0]['id'] if result else existing_id
+                else:
+                    print(f"⏭️ No changes for {politician_data.get('nome_civil', 'Unknown')} (CPF: {politician_data['cpf']})")
+                    return existing_id
+
+            # No existing record found - insert new politician
+            print(f"➕ Creating new politician: {politician_data.get('nome_civil', 'Unknown')}")
 
             # Build INSERT query
             fields = []

@@ -28,6 +28,7 @@ def recreate_all_tables():
 
     # Drop all tables in correct order (dependencies first)
     drop_tables = [
+        "DROP TABLE IF EXISTS party_memberships CASCADE",
         "DROP TABLE IF EXISTS politician_assets CASCADE",
         "DROP TABLE IF EXISTS politician_professional_background CASCADE",
         "DROP TABLE IF EXISTS politician_events CASCADE",
@@ -39,6 +40,7 @@ def recreate_all_tables():
         "DROP TABLE IF EXISTS vendor_sanctions CASCADE",
         "DROP TABLE IF EXISTS tcu_disqualifications CASCADE",
         "DROP TABLE IF EXISTS senado_politicians CASCADE",
+        "DROP TABLE IF EXISTS political_parties CASCADE",
         "DROP TABLE IF EXISTS financial_counterparts CASCADE",
         "DROP TABLE IF EXISTS unified_politicians CASCADE"
     ]
@@ -135,14 +137,60 @@ def recreate_all_tables():
         total_elections INTEGER,
         first_mandate_year INTEGER,
 
-        -- AGGREGATE CAREER METRICS (calculated fields)
-        number_of_elections INTEGER,
-        electoral_success_rate DECIMAL(5,2),
-        total_financial_transactions INTEGER,
-        total_financial_amount DECIMAL(15,2),
-        financial_counterparts_count INTEGER,
+        -- ENHANCED AGGREGATE METRICS (calculated fields)
+        number_of_elections INTEGER DEFAULT 0,
+        electoral_success_rate DECIMAL(5,2) DEFAULT 0.0,
+        total_financial_transactions INTEGER DEFAULT 0,
+        total_financial_amount DECIMAL(15,2) DEFAULT 0.0,
+        financial_counterparts_count INTEGER DEFAULT 0,
         first_transaction_date DATE,
         last_transaction_date DATE,
+
+        -- CORRUPTION DETECTION METRICS
+        tcu_disqualifications_total INTEGER DEFAULT 0,
+        tcu_disqualifications_active INTEGER DEFAULT 0,
+        tcu_first_disqualification DATE,
+        tcu_latest_disqualification DATE,
+        sanctioned_vendors_count INTEGER DEFAULT 0,
+        sanctioned_vendors_total_sanctions INTEGER DEFAULT 0,
+        sanctioned_vendors_amount DECIMAL(15,2) DEFAULT 0.0,
+        corruption_risk_score DECIMAL(5,2) DEFAULT 0.0,
+
+        -- FAMILY NETWORK ANALYSIS
+        family_senators_count INTEGER DEFAULT 0,
+        family_deputies_count INTEGER DEFAULT 0,
+        family_parties_senado TEXT,
+        family_parties_camara TEXT,
+        political_network_types INTEGER DEFAULT 0,
+        total_political_networks INTEGER DEFAULT 0,
+        leadership_positions_count INTEGER DEFAULT 0,
+
+        -- CAREER PROGRESSION METRICS
+        career_unique_offices INTEGER DEFAULT 0,
+        career_total_mandates INTEGER DEFAULT 0,
+        career_start_year INTEGER,
+        career_latest_year INTEGER,
+        career_span_years INTEGER DEFAULT 0,
+        career_states_served INTEGER DEFAULT 0,
+        professional_background_types INTEGER DEFAULT 0,
+        professional_background_total INTEGER DEFAULT 0,
+        professional_background_list TEXT,
+        parliamentary_events_total INTEGER DEFAULT 0,
+        parliamentary_event_types INTEGER DEFAULT 0,
+        parliamentary_attendance_rate DECIMAL(5,2) DEFAULT 0.0,
+
+        -- WEALTH PROGRESSION METRICS
+        wealth_declarations_count INTEGER DEFAULT 0,
+        wealth_first_year INTEGER,
+        wealth_latest_year INTEGER,
+        wealth_lowest_declared DECIMAL(15,2),
+        wealth_highest_declared DECIMAL(15,2),
+        wealth_average_declared DECIMAL(15,2),
+        wealth_total_growth DECIMAL(15,2) DEFAULT 0.0,
+        asset_types_diversity INTEGER DEFAULT 0,
+        total_individual_assets INTEGER DEFAULT 0,
+        total_individual_asset_value DECIMAL(15,2) DEFAULT 0.0,
+        average_individual_asset_value DECIMAL(15,2) DEFAULT 0.0,
 
         -- DATA VALIDATION FLAGS
         cpf_validated BOOLEAN DEFAULT FALSE,
@@ -550,6 +598,43 @@ def recreate_all_tables():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             CONSTRAINT unique_senado_politician UNIQUE (codigo)
         )
+        '''),
+        ('political_parties', '''
+        CREATE TABLE political_parties (
+            id INTEGER PRIMARY KEY,
+            nome VARCHAR(255) NOT NULL,
+            sigla VARCHAR(20) NOT NULL,
+            numero_eleitoral INTEGER,
+            status VARCHAR(50) DEFAULT 'Ativo',
+            lider_atual VARCHAR(255),
+            lider_id INTEGER,
+            lider_estado VARCHAR(10),
+            lider_legislatura INTEGER,
+            total_membros INTEGER DEFAULT 0,
+            total_efetivos INTEGER DEFAULT 0,
+            legislatura_id INTEGER,
+            logo_url VARCHAR(500),
+            uri_membros VARCHAR(500),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            CONSTRAINT unique_party_legislature UNIQUE (id, legislatura_id)
+        )
+        '''),
+        ('party_memberships', '''
+        CREATE TABLE party_memberships (
+            id SERIAL PRIMARY KEY,
+            party_id INTEGER NOT NULL,
+            deputy_id INTEGER NOT NULL,
+            deputy_name VARCHAR(255),
+            legislatura_id INTEGER,
+            status VARCHAR(50) DEFAULT 'Ativo',
+            data_inicio DATE,
+            data_fim DATE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (party_id) REFERENCES political_parties(id),
+            FOREIGN KEY (deputy_id) REFERENCES unified_politicians(deputy_id),
+            CONSTRAINT unique_party_membership UNIQUE (party_id, deputy_id, legislatura_id)
+        )
         ''')
     ]
 
@@ -578,13 +663,48 @@ def recreate_all_tables():
         "CREATE INDEX idx_tcu_uf ON tcu_disqualifications(uf)",
         "CREATE INDEX idx_senado_codigo ON senado_politicians(codigo)",
         "CREATE INDEX idx_senado_nome ON senado_politicians(nome_completo)",
-        "CREATE INDEX idx_senado_partido_estado ON senado_politicians(partido, estado)"
+        "CREATE INDEX idx_senado_partido_estado ON senado_politicians(partido, estado)",
+        "CREATE INDEX idx_parties_sigla ON political_parties(sigla)",
+        "CREATE INDEX idx_parties_legislatura ON political_parties(legislatura_id)",
+        "CREATE INDEX idx_party_memberships_party ON party_memberships(party_id)",
+        "CREATE INDEX idx_party_memberships_deputy ON party_memberships(deputy_id)",
+        "CREATE INDEX idx_party_memberships_legislatura ON party_memberships(legislatura_id)",
+        # Enhanced field indexes
+        "CREATE INDEX idx_politicians_corruption_risk ON unified_politicians(corruption_risk_score)",
+        "CREATE INDEX idx_politicians_tcu_disqualifications ON unified_politicians(tcu_disqualifications_total)",
+        "CREATE INDEX idx_politicians_sanctioned_vendors ON unified_politicians(sanctioned_vendors_count)",
+        "CREATE INDEX idx_politicians_family_network ON unified_politicians(family_senators_count, family_deputies_count)",
+        "CREATE INDEX idx_politicians_career_span ON unified_politicians(career_span_years)",
+        "CREATE INDEX idx_politicians_wealth_growth ON unified_politicians(wealth_total_growth)",
+        "CREATE INDEX idx_politicians_electoral_success ON unified_politicians(electoral_success_rate)",
+        "CREATE INDEX idx_politicians_corruption_composite ON unified_politicians(corruption_risk_score, tcu_disqualifications_total, sanctioned_vendors_count)",
+        "CREATE INDEX idx_politicians_family_network_composite ON unified_politicians(family_senators_count, family_deputies_count, total_political_networks)"
     ]
 
     for index_sql in indexes:
         cursor.execute(index_sql)
 
     print("✓ Created all performance indexes")
+
+    # Add enhanced validation constraints
+    print("\nAdding enhanced validation constraints...")
+    enhanced_constraints_sql = """
+    ALTER TABLE unified_politicians
+    ADD CONSTRAINT check_corruption_risk_range CHECK (corruption_risk_score >= 0 AND corruption_risk_score <= 100),
+    ADD CONSTRAINT check_electoral_success_range CHECK (electoral_success_rate >= 0 AND electoral_success_rate <= 100),
+    ADD CONSTRAINT check_attendance_range CHECK (parliamentary_attendance_rate >= 0 AND parliamentary_attendance_rate <= 100),
+    ADD CONSTRAINT check_non_negative_counts CHECK (
+        tcu_disqualifications_total >= 0 AND
+        sanctioned_vendors_count >= 0 AND
+        family_senators_count >= 0 AND
+        family_deputies_count >= 0 AND
+        career_unique_offices >= 0 AND
+        wealth_declarations_count >= 0
+    );
+    """
+
+    cursor.execute(enhanced_constraints_sql)
+    print("✓ Applied enhanced validation constraints")
 
     # Commit changes and close connection
     conn.commit()
@@ -605,6 +725,13 @@ def recreate_all_tables():
     print("10. ✅ vendor_sanctions - UNIQUE on (cnpj_cpf, sanction_type, sanction_start_date, sanctioning_agency)")
     print("11. ✅ tcu_disqualifications - UNIQUE on (cpf, processo, deliberacao)")
     print("12. ✅ senado_politicians - UNIQUE on (codigo)")
+    print("13. ✅ political_parties - UNIQUE on (id, legislatura_id)")
+    print("14. ✅ party_memberships - UNIQUE on (party_id, deputy_id, legislatura_id)")
+    print("\n🚀 ENHANCED FEATURES READY:")
+    print("✅ Corruption Detection: TCU disqualifications + vendor sanctions correlation")
+    print("✅ Family Networks: Cross-chamber surname analysis (Senate + Chamber)")
+    print("✅ Career Analytics: 35+ aggregate fields for comprehensive profiling")
+    print("✅ Enhanced Post-Processing: Ready for python cli4/main.py post-process --enhanced")
 
     print("\n🧪 READY FOR TESTING!")
     print("Run these commands twice to test duplicate prevention:")

@@ -11,7 +11,7 @@ This guide documents the complete field mapping between Brazilian government API
 
 ## 🚀 CLI4 POPULATION COMMANDS
 
-### Full Population Workflow (37-48 hours total)
+### Full Population Workflow (37-49 hours total)
 ```bash
 # Option 1: Use automated script with WhatsApp notifications
 ./run_full_population.sh
@@ -27,7 +27,8 @@ python cli4/main.py populate-professional # ~30-45 minutes (NEW!)
 python cli4/main.py populate-events       # ~45-60 minutes (NEW!)
 python cli4/main.py populate-sanctions    # ~1 hour (NEW! CORRUPTION DETECTION)
 python cli4/main.py populate-tcu          # ~30 minutes (NEW! CORRUPTION DETECTION)
-python cli4/main.py post-process          # ~30 minutes (MUST RUN BEFORE WEALTH!)
+python cli4/main.py populate-senado       # ~15 minutes (NEW! FAMILY NETWORKS)
+python cli4/main.py post-process --enhanced  # ~30-45 minutes (NEW! ENHANCED WITH CORRUPTION DETECTION)
 python cli4/main.py populate-wealth       # ~1-2 hours (DEPENDS ON POST-PROCESS!)
 python cli4/main.py validate              # ~1-3 minutes (ALWAYS LAST)
 ```
@@ -45,8 +46,10 @@ python cli4/main.py validate              # ~1-3 minutes (ALWAYS LAST)
 | `populate-events` | 45-60 min | ~60MB | **Parliamentary events with smart date range calculation** |
 | `populate-sanctions` | 1 hour | ~120MB | **Portal Transparência sanctions for corruption detection (21,795 records)** |
 | `populate-tcu` | 30 min | ~50MB | **TCU disqualifications for corruption detection (Federal Audit Court)** |
+| `populate-senado` | 15 min | ~30MB | **Senado politicians for family network detection (81 senators)** |
+| `post-process` | 30 min | ~40MB | Calculate basic aggregate metrics |
+| `post-process --enhanced` | 30-45 min | ~45MB | **🚀 ENHANCED: Corruption detection + family networks + comprehensive analytics** |
 | `populate-wealth` | 1-2 hours | ~2GB | **TSE asset declarations with intelligent year selection** |
-| `post-process` | 30 min | ~40MB | Calculate aggregate metrics |
 | `validate` | 1-3 min | ~40MB | Data integrity validation (ALWAYS LAST) |
 
 ### Important Notes
@@ -54,6 +57,174 @@ python cli4/main.py validate              # ~1-3 minutes (ALWAYS LAST)
 - **Memory-efficient**: Financial populator uses streaming (no bulk downloads)
 - **Resumable**: Can be interrupted and restarted
 - **Use tmux/screen**: For long-running processes
+
+## 🚀 ENHANCED POST-PROCESSING (NEW!)
+
+### Overview
+The enhanced post-processing system calculates **35+ aggregate fields** across 6 categories, enabling corruption detection, family network analysis, and comprehensive politician profiling.
+
+### Enhanced Field Categories
+
+| Category | Fields | Description |
+|----------|--------|-------------|
+| **Electoral** | 4 fields | Election participation, success rates, timeline |
+| **Financial** | 5 fields | Transaction totals, counterpart counts, amounts |
+| **🚨 Corruption** | 8 fields | **TCU disqualifications + vendor sanctions correlation** |
+| **👨‍👩‍👧‍👦 Networks** | 7 fields | **Family network analysis + political networks** |
+| **💼 Career** | 12 fields | **Career progression + professional backgrounds + parliamentary activity** |
+| **💎 Wealth** | 9 fields | **Asset diversity + wealth progression analysis** |
+
+### Enhanced Post-Processing Commands
+
+```bash
+# Basic post-processing (original functionality)
+python cli4/main.py post-process --fields electoral
+python cli4/main.py post-process --fields financial
+
+# Enhanced post-processing with corruption detection
+python cli4/main.py post-process --enhanced --fields corruption
+python cli4/main.py post-process --enhanced --fields networks
+python cli4/main.py post-process --enhanced --fields career
+python cli4/main.py post-process --enhanced --fields wealth
+
+# Process all enhanced fields (recommended)
+python cli4/main.py post-process --enhanced --fields all
+
+# Force refresh all politicians (development/testing)
+python cli4/main.py post-process --enhanced --force-refresh
+
+# Process specific politicians
+python cli4/main.py post-process --enhanced --politician-ids 1 2 3 --fields corruption
+```
+
+### 🚨 Corruption Detection Features
+
+#### **TCU Disqualifications Cross-Reference**
+- **CPF-based matching** with Federal Audit Court disqualifications
+- **Active vs expired** disqualification tracking
+- **Timeline correlation** with political activity
+- **Risk assessment** based on severity and recency
+
+#### **Vendor Sanctions Correlation**
+- **CNPJ-based detection** of financial relationships with sanctioned companies
+- **Cross-reference** politician expenses with Portal da Transparência sanctions
+- **Amount correlation** - flag high-value transactions with sanctioned vendors
+- **Business network exposure** analysis
+
+#### **Corruption Risk Scoring**
+- **0-100 scale** with higher scores indicating more risk
+- **Weighted algorithm**: TCU disqualifications (60%) + Vendor sanctions (40%)
+- **Real-time calculation** during post-processing
+- **Investigation-ready** flagging system
+
+### 👨‍👩‍👧‍👦 Family Network Analysis
+
+#### **Cross-Chamber Surname Correlation**
+- **Senado + Câmara** family member detection
+- **Surname-based analysis** across both chambers
+- **Party affiliation tracking** for family members
+- **Political dynasty identification**
+
+#### **Business Network Potential**
+- **Same-surname politicians** may indicate family business networks
+- **Resource concentration** analysis across family members
+- **Geographic influence** tracking across different states
+- **Coalition movement** detection for family groups
+
+### 💼 Career & Wealth Analytics
+
+#### **Comprehensive Career Progression**
+- **Mandate diversity** across different offices and levels
+- **Geographic influence** - states and municipalities served
+- **Professional background integration** from Deputados API
+- **Parliamentary activity** - event participation and attendance rates
+- **Timeline analysis** - career span and progression patterns
+
+#### **Wealth Progression Tracking**
+- **Asset diversity analysis** - types and values over time
+- **Wealth growth calculation** from first to latest declaration
+- **Declaration completeness** tracking
+- **Investment pattern analysis** ready for suspicious growth detection
+
+### Enhanced Database Schema
+
+The enhanced post-processing adds **35+ new fields** to the `unified_politicians` table:
+
+```sql
+-- Corruption Detection Fields
+tcu_disqualifications_total INTEGER DEFAULT 0,
+tcu_disqualifications_active INTEGER DEFAULT 0,
+sanctioned_vendors_count INTEGER DEFAULT 0,
+corruption_risk_score DECIMAL(5,2) DEFAULT 0.0,
+
+-- Family Network Fields
+family_senators_count INTEGER DEFAULT 0,
+family_deputies_count INTEGER DEFAULT 0,
+family_parties_senado TEXT,
+family_parties_camara TEXT,
+
+-- Career Progression Fields
+career_unique_offices INTEGER DEFAULT 0,
+career_span_years INTEGER DEFAULT 0,
+parliamentary_events_total INTEGER DEFAULT 0,
+professional_background_types INTEGER DEFAULT 0,
+
+-- Wealth Analysis Fields
+wealth_declarations_count INTEGER DEFAULT 0,
+wealth_total_growth DECIMAL(15,2) DEFAULT 0.0,
+asset_types_diversity INTEGER DEFAULT 0,
+-- ... and 20+ more fields
+```
+
+### Performance & Dependencies
+
+#### **Dependencies Required**
+- `populate-sanctions` - Vendor sanctions data (21,795 records)
+- `populate-tcu` - TCU disqualifications data
+- `populate-senado` - Senate politicians for family networks (81 senators)
+- `populate-career` - Career history data
+- `populate-professional` - Professional background data
+- `populate-events` - Parliamentary events data
+- `populate-assets` - Asset declarations data
+
+#### **Processing Performance**
+- **512 politicians**: ~30-45 minutes total
+- **Memory usage**: ~45MB peak
+- **Rate limited**: 2-4 seconds per politician
+- **Chunked processing**: Memory-efficient batching
+- **Progress tracking**: Real-time status updates
+
+### Enhanced Workflow Integration
+
+The enhanced post-processing is **automatically integrated** in the full workflow:
+
+```bash
+# Step 12 in run_full_population.sh
+python cli4/main.py post-process --enhanced  # All 6 categories calculated
+```
+
+### Sample Enhanced Output
+
+```
+👤 [1/512] Processing: ACÁCIO DA SILVA FAVACHO NETO
+   📊 Calculating electoral fields...
+      ✅ Elections: 2 (2018-2022)
+      🏆 Success rate: 100.0% (2 wins)
+   💰 Calculating financial fields...
+      ✅ Transactions: 126
+      💵 Total amount: R$ 2,736,273.52
+   🚨 Calculating corruption detection fields...
+      ✅ TCU: Clean record
+      ✅ SANCTIONS: Clean vendor record
+      📊 Corruption Risk Score: 0/100
+   👨‍👩‍👧‍👦 Calculating family network fields...
+      👨‍👩‍👧‍👦 SENADO: 1 family members
+      👨‍👩‍👧‍👦 CÂMARA: 15 family members
+   💼 Calculating career progression fields...
+      💼 CAREER: 2 mandates, 1 offices, 10 years
+   💎 Calculating wealth progression fields...
+      💎 WEALTH: 1 declarations, R$ 0.00 growth
+```
 
 ### Core Data Sources - TESTED AND VERIFIED
 
