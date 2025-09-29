@@ -23,11 +23,16 @@ class CLI4PoliticianPopulator:
         self.tse_client = TSEClient()  # ✅ REUSED TSE CLIENT - keeps cache between politicians
 
     def populate(self, limit: Optional[int] = None, start_id: Optional[int] = None,
-                active_only: bool = True, resume_from: Optional[int] = None) -> List[int]:
+                active_only: bool = True, resume_from: Optional[int] = None,
+                all_legislatures: bool = False, paginate_all: bool = False) -> List[int]:
         """Main population method"""
 
-        print(f"🔍 Discovering active deputies...")
-        deputy_ids = self._get_deputy_ids(active_only=active_only, limit=limit, start_id=start_id)
+        if all_legislatures:
+            print(f"🔍 Discovering deputies from ALL legislatures...")
+            return self._populate_all_legislatures(limit, active_only, resume_from, paginate_all)
+        else:
+            print(f"🔍 Discovering active deputies...")
+            deputy_ids = self._get_deputy_ids(active_only=active_only, limit=limit, start_id=start_id)
 
         if resume_from:
             deputy_ids = [d for d in deputy_ids if d >= resume_from]
@@ -69,6 +74,201 @@ class CLI4PoliticianPopulator:
                 continue
 
         return created_ids
+
+    def _populate_all_legislatures(self, limit: Optional[int] = None,
+                                  active_only: bool = True, resume_from: Optional[int] = None, paginate_all: bool = False) -> List[int]:
+        """Fetch deputies from all available legislatures for complete historical coverage"""
+
+        # Get all available legislatures (recent ones first)
+        legislatures = self._get_all_legislatures()
+        if not legislatures:
+            print("   ❌ No legislatures found, falling back to current legislature")
+            return self._get_deputy_ids(active_only=active_only, limit=limit)
+
+        # Focus on recent legislatures for practical purposes
+        recent_legislatures = [leg for leg in legislatures if leg['id'] >= 55]  # Last 3 legislatures
+        print(f"   📊 Found {len(recent_legislatures)} recent legislatures to process")
+
+        all_deputy_ids = set()
+        total_processed = 0
+
+        for legislature in recent_legislatures:
+            legislature_id = legislature['id']
+            start_date = legislature['dataInicio']
+            end_date = legislature['dataFim']
+
+            print(f"\n📜 Processing Legislature {legislature_id} ({start_date} - {end_date})")
+
+            # Get deputies for this legislature
+            try:
+                deputy_ids = self._get_deputy_ids_for_legislature(legislature_id, active_only, paginate_all)
+                print(f"   📋 Found {len(deputy_ids)} deputies in legislature {legislature_id}")
+
+                # Add to our master set (duplicates are automatically handled by set)
+                all_deputy_ids.update(deputy_ids)
+                total_processed += len(deputy_ids)
+
+            except Exception as e:
+                print(f"   ❌ Error processing legislature {legislature_id}: {e}")
+                continue
+
+            # Respect limit if provided
+            if limit and len(all_deputy_ids) >= limit:
+                print(f"   🛑 Reached limit of {limit} deputies")
+                break
+
+        # Convert to sorted list
+        deputy_ids_list = sorted(list(all_deputy_ids))
+
+        # Apply resume_from filter
+        if resume_from:
+            deputy_ids_list = [d for d in deputy_ids_list if d >= resume_from]
+
+        # Apply final limit
+        if limit:
+            deputy_ids_list = deputy_ids_list[:limit]
+
+        print(f"\n📊 Total unique deputies discovered: {len(deputy_ids_list)}")
+        print(f"📊 Processing {len(deputy_ids_list)} deputies with TSE correlation...")
+
+        # Pre-load TSE data for all required states
+        self._preload_tse_data_for_states(deputy_ids_list)
+
+        created_ids = []
+
+        for i, deputy_id in enumerate(deputy_ids_list, 1):
+            try:
+                print(f"\n👤 [{i}/{len(deputy_ids_list)}] Processing deputy {deputy_id}")
+
+                # Get deputy details
+                deputy_detail = self._get_deputy_detail(deputy_id)
+                if not deputy_detail:
+                    continue
+
+                # TSE correlation by CPF with state optimization
+                deputy_state = deputy_detail.get('ultimoStatus', {}).get('siglaUf')
+                tse_matches = self._find_tse_candidate_by_cpf(deputy_detail['cpf'], deputy_state)
+
+                # Create politician record
+                politician_data = self._build_politician_record(deputy_detail, tse_matches)
+                politician_id = self._insert_politician(politician_data)
+
+                if politician_id:
+                    created_ids.append(politician_id)
+                    self.logger.log_processing(
+                        'politician', str(politician_id), 'success',
+                        {'name': deputy_detail['nomeCivil'], 'tse_linked': len(tse_matches) > 0}
+                    )
+
+            except Exception as e:
+                self.logger.log_processing('politician', str(deputy_id), 'error', {'error': str(e)})
+                print(f"❌ Error processing deputy {deputy_id}: {e}")
+                continue
+
+        return created_ids
+
+    def _get_all_legislatures(self) -> List[Dict[str, Any]]:
+        """Get all available legislatures from Câmara API"""
+        try:
+            wait_time = self.rate_limiter.wait_if_needed('camara')
+            url = f"{self.camara_base}/legislaturas"
+            params = {'ordem': 'DESC', 'ordenarPor': 'id', 'itens': 100}
+
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+
+            data = response.json()
+            legislatures = data.get('dados', [])
+
+            print(f"   📊 Found {len(legislatures)} total legislatures")
+            return legislatures
+
+        except Exception as e:
+            print(f"   ❌ Error fetching legislatures: {e}")
+            return []
+
+    def _get_deputy_ids_for_legislature(self, legislature_id: int, active_only: bool = True, paginate_all: bool = False) -> List[int]:
+        """Get deputy IDs for a specific legislature with optional pagination"""
+        url = f"{self.camara_base}/deputados"
+        all_deputy_ids = []
+
+        if not paginate_all:
+            # Original behavior: single request with 1000 limit
+            wait_time = self.rate_limiter.wait_if_needed('camara')
+            params = {
+                'idLegislatura': legislature_id,
+                'ordem': 'ASC',
+                'ordenarPor': 'nome',
+                'itens': 1000
+            }
+
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+
+            data = response.json()
+            deputies = data.get('dados', [])
+            deputy_ids = [deputy['id'] for deputy in deputies]
+
+            print(f"      ✅ Retrieved {len(deputy_ids)} deputies from legislature {legislature_id}")
+            return deputy_ids
+
+        else:
+            # Pagination logic: fetch ALL deputies across all pages
+            current_page = 1
+            max_pages = 50  # Safety limit
+            consecutive_empty_pages = 0
+            max_consecutive_empty = 3
+
+            print(f"      🔄 Using pagination to fetch ALL deputies from legislature {legislature_id}...")
+
+            while current_page <= max_pages and consecutive_empty_pages < max_consecutive_empty:
+                try:
+                    # Rate limiting
+                    wait_time = self.rate_limiter.wait_if_needed('camara')
+
+                    params = {
+                        'idLegislatura': legislature_id,
+                        'ordem': 'ASC',
+                        'ordenarPor': 'nome',
+                        'itens': 100,  # Smaller page size for pagination
+                        'pagina': current_page
+                    }
+
+                    response = requests.get(url, params=params)
+                    response.raise_for_status()
+
+                    data = response.json()
+                    deputies_page = data.get('dados', [])
+
+                    # Check if page is empty
+                    if not deputies_page or len(deputies_page) == 0:
+                        consecutive_empty_pages += 1
+                        print(f"         ⚠️ Empty page {current_page} ({consecutive_empty_pages}/{max_consecutive_empty})")
+
+                        if consecutive_empty_pages >= max_consecutive_empty:
+                            print(f"         🛑 Stopping: {max_consecutive_empty} consecutive empty pages")
+                            break
+
+                        current_page += 1
+                        continue
+
+                    # Reset empty page counter
+                    consecutive_empty_pages = 0
+
+                    # Extract deputy IDs and add to total
+                    page_deputy_ids = [deputy['id'] for deputy in deputies_page]
+                    all_deputy_ids.extend(page_deputy_ids)
+
+                    print(f"         📄 Page {current_page}: {len(page_deputy_ids)} deputies")
+                    current_page += 1
+
+                except Exception as e:
+                    print(f"         ❌ Error processing page {current_page}: {e}")
+                    current_page += 1
+                    continue
+
+            print(f"      ✅ Retrieved {len(all_deputy_ids)} deputies from legislature {legislature_id} ({current_page-1} pages)")
+            return all_deputy_ids
 
     def _preload_tse_data_for_states(self, deputy_ids: List[int]):
         """Pre-load TSE data for all states we'll need to avoid repeated downloads"""

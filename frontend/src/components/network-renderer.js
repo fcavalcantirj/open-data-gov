@@ -59,7 +59,7 @@ class NetworkRenderer {
             .nodeId('id')
             .nodeLabel(node => this.getNodeLabel(node))
             .nodeVal(node => this.getNodeSize(node))
-            .nodeAutoColorBy('type')
+            .nodeColor(node => this.getNodeColor(node))  // Manual color management instead of auto
             .nodeOpacity(0.75)     // Default vasturiano opacity
             .nodeRelSize(6)        // Proper nodeRelSize (controls sphere volume per value unit)
             .enableNodeDrag(this.options.enableNodeDrag)
@@ -176,15 +176,16 @@ class NetworkRenderer {
      * Update focus mode and camera position
      */
     updateFocusMode() {
+        console.log('🎯 updateFocusMode called with:', this.focusMode);
         switch (this.focusMode) {
             case 'politicians':
-                this.focusOnNodeType('politician');
+                this.focusOnNodeType('politician'); // Convert plural to singular
                 break;
             case 'parties':
-                this.focusOnNodeType('party');
+                this.focusOnNodeType('party'); // Convert plural to singular
                 break;
             case 'companies':
-                this.focusOnNodeType('company');
+                this.focusOnNodeType('company'); // Convert plural to singular
                 break;
             case 'corruption':
                 this.focusOnCorruptionNetwork();
@@ -206,13 +207,27 @@ class NetworkRenderer {
             return;
         }
 
+        // DEBUG: Show ALL node types in the data
+        const allTypes = [...new Set(this.data.nodes.map(n => n.type))];
+        console.log('🔍 ALL NODE TYPES IN DATA:', allTypes);
+        console.log('🔍 TOTAL NODES:', this.data.nodes.length);
+
+        // Count each type
+        const typeCounts = {};
+        this.data.nodes.forEach(n => {
+            typeCounts[n.type] = (typeCounts[n.type] || 0) + 1;
+        });
+        console.log('🔍 NODE TYPE COUNTS:', typeCounts);
+
         const nodes = this.data.nodes.filter(n => n.type === nodeType);
+        console.log(`🎯 Looking for nodeType: "${nodeType}"`);
+        console.log(`🎯 Found ${nodes.length} matching nodes`);
+
         if (nodes.length === 0) {
-            console.warn(`No nodes found for type: ${nodeType}`);
+            console.error(`❌ NO NODES FOUND FOR TYPE: "${nodeType}"`);
+            console.error('Available types:', allTypes);
             return;
         }
-
-        console.log(`🎯 Focusing on ${nodes.length} ${nodeType} nodes`);
 
         // Apply visual focus immediately
         this.applyFocusFilter(nodeType);
@@ -311,7 +326,7 @@ class NetworkRenderer {
     applyFocusFilter(focusType) {
         if (!this.graph || !this.data) return;
 
-        console.log(`🎯 Applying visual focus filter for: ${focusType}`);
+        console.log(`🎯 APPLYING VISUAL FOCUS FILTER FOR: ${focusType} - NEW CODE LOADED!!!`);
 
         // Count nodes by type for debugging
         const nodeCounts = {};
@@ -320,18 +335,21 @@ class NetworkRenderer {
         });
         console.log('Node type counts:', nodeCounts);
 
-        // Update node opacity and size based on focus
-        this.graph.nodeOpacity(node => {
-            const isFocused = node.type === focusType;
-            console.log(`Node ${node.name} (${node.type}): ${isFocused ? 'FOCUSED' : 'dimmed'}`);
-            return isFocused ? 1.0 : 0.1; // More dramatic difference
-        });
+        // DEBUG: Log what's happening to each node
+        console.log('🔍 APPLYING FOCUS FILTER FOR:', focusType);
 
-        // Update node size based on focus
+        // KEEP ALL NODES FULLY VISIBLE - NO OPACITY CHANGES
+        this.graph.nodeOpacity(1.0);  // All nodes fully visible
+
+        // Use SIZE to show focus instead of opacity
         this.graph.nodeVal(node => {
-            const baseSize = this.getNodeSize(node);
             const isFocused = node.type === focusType;
-            return isFocused ? baseSize * 2 : baseSize * 0.3; // More dramatic size difference
+            if (isFocused) {
+                console.log('✅ HIGHLIGHTING WITH SIZE:', node.name, node.type);
+                return 20; // Bigger size for focused nodes
+            } else {
+                return 3;  // Smaller size for non-focused nodes
+            }
         });
 
         // Update link opacity based on focus - show only relevant connections
@@ -615,7 +633,24 @@ class NetworkRenderer {
     getNodeColor(node) {
         if (!node) return '#ffffff';
 
-        let color = node.color || '#ffffff';
+        // Define colors by node type
+        let color;
+        switch (node.type) {
+            case 'politician':
+                color = '#ff6b6b';  // Red for politicians
+                break;
+            case 'party':
+                color = '#4ecdc4';  // Teal for parties
+                break;
+            case 'company':
+                color = '#ffe66d';  // Yellow for companies
+                break;
+            case 'sanction':
+                color = '#ff8b94';  // Pink for sanctions
+                break;
+            default:
+                color = '#ffffff';
+        }
 
         // Highlight selected node
         if (this.selectedNode && this.selectedNode.id === node.id) {

@@ -53,6 +53,12 @@ Examples:
   # Populate ALL politicians (including inactive)
   python cli4/main.py populate --include-inactive
 
+  # Populate politicians from ALL legislatures (complete historical coverage)
+  python cli4/main.py populate --all-legislatures
+
+  # Fetch ALL deputies using pagination (complete dataset)
+  python cli4/main.py populate --all-legislatures --paginate-all
+
   # Populate financial records
   python cli4/main.py populate-financial
 
@@ -132,6 +138,8 @@ Examples:
     pop_parser.add_argument('--active-only', action='store_true', default=True, help='Process only active deputies')
     pop_parser.add_argument('--include-inactive', action='store_true', default=False, help='Include inactive deputies (on leave, vacant seats, etc.)')
     pop_parser.add_argument('--resume-from', type=int, help='Resume from specific politician ID')
+    pop_parser.add_argument('--all-legislatures', action='store_true', default=False, help='Fetch deputies from ALL legislatures (55, 56, 57) for complete historical coverage')
+    pop_parser.add_argument('--paginate-all', action='store_true', default=False, help='Fetch ALL deputies using pagination (override 1000 limit per legislature)')
 
     # Financial population commands
     financial_parser = subparsers.add_parser('populate-financial', help='Populate financial tables')
@@ -298,7 +306,9 @@ def main():
                 limit=args.limit,
                 start_id=args.start_id,
                 active_only=not args.include_inactive,  # If include_inactive=True, then active_only=False
-                resume_from=args.resume_from
+                resume_from=args.resume_from,
+                all_legislatures=args.all_legislatures,
+                paginate_all=args.paginate_all
             )
 
             print(f"\n✅ Population completed: {len(created_ids)} politicians processed")

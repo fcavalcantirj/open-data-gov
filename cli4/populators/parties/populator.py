@@ -21,27 +21,84 @@ class CLI4PartiesPopulator:
         self.camara_base = "https://dadosabertos.camara.leg.br/api/v2"
 
     def populate(self, limit: Optional[int] = None, legislatura_id: Optional[int] = None,
-                force_refresh: bool = False) -> List[int]:
-        """Main population method"""
+                force_refresh: bool = False, all_legislatures: bool = True) -> List[int]:
+        """Main population method - fetches parties from all legislatures by default"""
 
         print(f"🏛️ Discovering political parties...")
 
-        # Default to current legislature if not specified
-        if not legislatura_id:
-            legislatura_id = 57  # Current legislature as of 2025
+        if all_legislatures and not legislatura_id:
+            # Fetch parties from ALL legislatures for complete historical coverage
+            return self._populate_all_legislatures(limit, force_refresh)
+        else:
+            # Single legislature mode (legacy behavior)
+            if not legislatura_id:
+                legislatura_id = 57  # Current legislature as of 2025
+            return self._populate_single_legislature(legislatura_id, limit, force_refresh)
 
-        party_ids = self._get_party_ids(limit=limit)
+    def _populate_all_legislatures(self, limit: Optional[int] = None, force_refresh: bool = False) -> List[int]:
+        """Fetch parties from all available legislatures for complete political party universe"""
+
+        # Get all available legislatures
+        legislatures = self._get_all_legislatures()
+        if not legislatures:
+            print("   ❌ No legislatures found, falling back to current legislature")
+            return self._populate_single_legislature(57, limit, force_refresh)
+
+        print(f"   📊 Found {len(legislatures)} legislatures to process")
+        all_created_ids = []
+        total_parties_processed = 0
+
+        for legislature in legislatures:
+            legislature_id = legislature['id']
+            print(f"\n📜 Processing Legislature {legislature_id} ({legislature.get('dataInicio', 'N/A')} - {legislature.get('dataFim', 'N/A')})")
+
+            try:
+                # Get parties specific to this legislature
+                party_ids = self._get_party_ids_for_legislature(legislature_id, limit)
+                print(f"   📋 Found {len(party_ids)} parties in legislature {legislature_id}")
+
+                created_ids = self._process_parties_for_legislature(party_ids, legislature_id, force_refresh)
+                all_created_ids.extend(created_ids)
+                total_parties_processed += len(party_ids)
+
+            except Exception as e:
+                print(f"   ❌ Error processing legislature {legislature_id}: {e}")
+                continue
+
+        print(f"\n🎯 ALL LEGISLATURES COMPLETED")
+        print(f"   Total legislatures processed: {len(legislatures)}")
+        print(f"   Total parties processed: {total_parties_processed}")
+        print(f"   Total parties created/updated: {len(all_created_ids)}")
+
+        return all_created_ids
+
+    def _populate_single_legislature(self, legislatura_id: int, limit: Optional[int] = None,
+                                   force_refresh: bool = False) -> List[int]:
+        """Legacy single legislature processing"""
+
+        party_ids = self._get_party_ids_for_legislature(legislatura_id, limit)
         print(f"📋 Processing {len(party_ids)} parties for legislature {legislatura_id}")
 
+        created_ids = self._process_parties_for_legislature(party_ids, legislatura_id, force_refresh)
+
+        print(f"\n✅ PARTIES POPULATION COMPLETED")
+        print(f"   Parties processed: {len(party_ids)}")
+        print(f"   Parties created/updated: {len(created_ids)}")
+
+        return created_ids
+
+    def _process_parties_for_legislature(self, party_ids: List[int], legislatura_id: int,
+                                       force_refresh: bool) -> List[int]:
+        """Process a list of party IDs for a specific legislature"""
         created_ids = []
 
         for i, party_id in enumerate(party_ids, 1):
             try:
-                print(f"\n🎯 [{i}/{len(party_ids)}] Processing party {party_id}")
+                print(f"   🎯 [{i}/{len(party_ids)}] Processing party {party_id}")
 
                 # Check if party already exists for this legislature (idempotency)
                 if not force_refresh and self._party_exists(party_id, legislatura_id):
-                    print(f"   ⏭️ Party {party_id} already exists for legislature {legislatura_id}")
+                    print(f"      ⏭️ Party {party_id} already exists for legislature {legislatura_id}")
                     continue
 
                 # Get party details
@@ -49,8 +106,8 @@ class CLI4PartiesPopulator:
                 if not party_detail:
                     continue
 
-                # Get party members
-                party_members = self._get_party_members(party_id)
+                # Get party members for this legislature
+                party_members = self._get_party_members_for_legislature(party_id, legislatura_id)
 
                 # Create or update party record
                 party_db_id = self._create_or_update_party(party_detail, legislatura_id, party_members)
@@ -70,28 +127,90 @@ class CLI4PartiesPopulator:
                     }
                 )
 
-                print(f"   ✅ Party created/updated: {party_detail.get('nome')} ({len(party_members) if party_members else 0} members)")
+                print(f"      ✅ Party: {party_detail.get('nome')} ({len(party_members) if party_members else 0} members)")
 
             except Exception as e:
-                print(f"   ❌ Error processing party {party_id}: {e}")
+                print(f"      ❌ Error processing party {party_id}: {e}")
                 self.logger.log_processing('parties', str(party_id), 'error', {'error': str(e)})
                 continue
 
             self.rate_limiter.wait_if_needed('default')
 
-        print(f"\n✅ PARTIES POPULATION COMPLETED")
-        print(f"   Parties processed: {len(party_ids)}")
-        print(f"   Parties created/updated: {len(created_ids)}")
-
         return created_ids
+
+    def _get_all_legislatures(self) -> List[Dict]:
+        """Get all available legislatures from Câmara API"""
+        try:
+            url = f"{self.camara_base}/legislaturas"
+            params = {'itens': 100}  # Get all legislatures
+
+            response = requests.get(url, params=params, timeout=30)
+            response.raise_for_status()
+
+            data = response.json()
+            legislatures = data.get('dados', [])
+
+            print(f"   📊 Found {len(legislatures)} total legislatures")
+            return legislatures
+
+        except Exception as e:
+            print(f"   ❌ Error fetching legislatures: {e}")
+            return []
+
+    def _get_party_ids_for_legislature(self, legislatura_id: Optional[int] = None, limit: Optional[int] = None) -> List[int]:
+        """Get party IDs for a specific legislature (or current if None)"""
+        try:
+            url = f"{self.camara_base}/partidos"
+            params = {
+                'itens': 100  # Get all parties in one request
+            }
+            if legislatura_id:
+                params['idLegislatura'] = legislatura_id
+            if limit:
+                params['itens'] = min(limit, 100)
+
+            response = requests.get(url, params=params, timeout=30)
+            response.raise_for_status()
+
+            data = response.json()
+            parties = data.get('dados', [])
+
+            party_ids = [party['id'] for party in parties if party.get('id')]
+            return party_ids[:limit] if limit else party_ids
+
+        except Exception as e:
+            print(f"   ❌ Error fetching party list for legislature {legislatura_id}: {e}")
+            return []
+
+    def _get_party_members_for_legislature(self, party_id: int, legislatura_id: Optional[int] = None) -> Optional[List[Dict]]:
+        """Get party members for a specific legislature"""
+        try:
+            url = f"{self.camara_base}/partidos/{party_id}/membros"
+            params = {}
+            if legislatura_id:
+                params['idLegislatura'] = legislatura_id
+
+            response = requests.get(url, params=params, timeout=30)
+            response.raise_for_status()
+
+            data = response.json()
+            members = data.get('dados', [])
+
+            return members
+
+        except Exception as e:
+            print(f"   ⚠️ Error fetching party {party_id} members for legislature {legislatura_id}: {e}")
+            return None
 
     def _get_party_ids(self, limit: Optional[int] = None) -> List[int]:
         """Get list of all party IDs from Câmara API"""
         try:
             url = f"{self.camara_base}/partidos"
-            params = {}
+            params = {
+                'itens': 100  # Get all parties in one request (API max is 100, current total is ~20)
+            }
             if limit:
-                params['itens'] = min(limit, 100)  # API max is 100
+                params['itens'] = min(limit, 100)  # Respect user limit if provided
 
             response = requests.get(url, params=params, timeout=30)
             response.raise_for_status()
@@ -130,21 +249,8 @@ class CLI4PartiesPopulator:
             return None
 
     def _get_party_members(self, party_id: int) -> Optional[List[Dict]]:
-        """Get party members list"""
-        try:
-            url = f"{self.camara_base}/partidos/{party_id}/membros"
-            response = requests.get(url, timeout=30)
-            response.raise_for_status()
-
-            data = response.json()
-            members = data.get('dados', [])
-
-            print(f"   👥 Members: {len(members)}")
-            return members
-
-        except Exception as e:
-            print(f"   ❌ Error fetching party {party_id} members: {e}")
-            return None
+        """Get party members list (legacy method - uses current legislature)"""
+        return self._get_party_members_for_legislature(party_id, None)
 
     def _party_exists(self, party_id: int, legislatura_id: int) -> bool:
         """Check if party already exists for this legislature (idempotency)"""
