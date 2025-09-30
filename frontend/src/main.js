@@ -209,11 +209,12 @@ class PoliticalNetwork3DApp {
             });
         }
 
-        // Close panels when clicking on the graph
+        // Close panels when clicking on the graph (but not on nodes)
         const graph = document.getElementById('3d-graph');
         if (graph) {
-            graph.addEventListener('click', () => {
-                if (window.innerWidth <= 900) {
+            graph.addEventListener('click', (e) => {
+                // Only close if it's a direct click on the graph background, not on nodes
+                if (e.target === graph && window.innerWidth <= 900) {
                     if (controlsPanel) controlsPanel.classList.remove('open');
                     if (infoPanel) infoPanel.classList.remove('open');
                 }

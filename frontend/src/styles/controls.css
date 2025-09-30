@@ -205,7 +205,8 @@ button:hover {
     background: rgba(0, 255, 0, 0.2);
     border-color: #00ff00;
     color: #ffffff;
-    box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5), 0 0 30px rgba(0, 255, 0, 0.2);
+    text-shadow: 0 0 8px rgba(0, 255, 0, 0.8);
 }
 
 button:active {
@@ -215,12 +216,13 @@ button:active {
 button.active {
     background: #00ff00;
     color: #000000;
-    box-shadow: 0 0 12px rgba(0, 255, 0, 0.4);
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.6), 0 0 40px rgba(0, 255, 0, 0.3);
     text-shadow: none;
 }
 
 button.active:hover {
     background: #00dd00;
+    box-shadow: 0 0 25px rgba(0, 255, 0, 0.8), 0 0 50px rgba(0, 255, 0, 0.4);
 }
 
 /* Count Badges */

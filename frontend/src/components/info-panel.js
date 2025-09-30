@@ -42,13 +42,8 @@ class InfoPanel {
             }
         });
 
-        // Close when clicking outside (for mobile)
-        document.addEventListener('click', (e) => {
-            if (this.isVisible && !this.panel.contains(e.target) &&
-                !e.target.closest('#3d-graph')) {
-                this.hide();
-            }
-        });
+        // Removed "click outside to close" as it was interfering with node clicks
+        // Users can still close via the X button or Escape key
     }
 
     /**
