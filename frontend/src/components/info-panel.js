@@ -21,7 +21,10 @@ class InfoPanel {
      */
     init() {
         this.setupEventListeners();
-        this.hide();
+        // Don't hide on desktop, only on mobile
+        if (window.innerWidth <= 900) {
+            this.hide();
+        }
     }
 
     /**
@@ -83,12 +86,17 @@ class InfoPanel {
 
         this.panel.classList.remove('open', 'slide-in-right');
 
-        // Delay hiding to allow animation
-        setTimeout(() => {
-            if (!this.isVisible) {
-                this.panel.style.display = 'none';
-            }
-        }, 300);
+        // On desktop, hide completely when closed
+        if (window.innerWidth > 900) {
+            this.panel.style.display = 'none';
+        } else {
+            // Mobile behavior
+            setTimeout(() => {
+                if (!this.isVisible) {
+                    this.panel.style.display = 'none';
+                }
+            }, 300);
+        }
     }
 
     /**
@@ -373,6 +381,9 @@ class InfoPanel {
         }
 
         this.showToast('Conexões destacadas no mapa 3D');
+
+        // Close panel on mobile after action
+        this.closePanelOnMobile();
     }
 
     /**
@@ -450,6 +461,57 @@ class InfoPanel {
     }
 
     /**
+     * Action: Show company network
+     */
+    showCompanyNetwork() {
+        if (!this.currentNode || this.currentNode.type !== 'company') return;
+
+        // Highlight company connections in the graph
+        if (window.networkRenderer) {
+            window.networkRenderer.highlightNodeConnections(this.currentNode);
+            window.networkRenderer.focusOnNodes([this.currentNode]);
+        }
+
+        let html = '<div class="company-network">';
+        html += '<h4>🏢 Rede Empresarial</h4>';
+
+        html += `<div class="company-info">
+            <div class="company-name">${this.currentNode.name}</div>`;
+
+        if (this.currentNode.cnpj) {
+            html += `<div class="company-cnpj">CNPJ: ${this.formatCNPJ(this.currentNode.cnpj)}</div>`;
+        }
+
+        html += '</div>';
+
+        html += '<div class="network-stats">';
+        html += '<h5>Estatísticas da Rede:</h5>';
+
+        if (this.currentNode.transaction_count) {
+            html += `<div class="stat-item">💰 Transações: ${this.currentNode.transaction_count}</div>`;
+        }
+
+        if (this.currentNode.total_value) {
+            html += `<div class="stat-item">💵 Valor Total: ${this.formatCurrency(this.currentNode.total_value)}</div>`;
+        }
+
+        html += '<div class="stat-item">🔗 Conexões destacadas no mapa 3D</div>';
+        html += '</div>';
+
+        html += '<div class="network-actions">';
+        html += '<p style="color: #4a9eff; font-style: italic;">Explore as conexões desta empresa no mapa 3D. As ligações foram destacadas para facilitar a visualização.</p>';
+        html += '</div>';
+
+        html += '</div>';
+
+        this.content.innerHTML = html;
+        this.showToast('Rede empresarial destacada no mapa 3D');
+
+        // Close panel on mobile after action
+        this.closePanelOnMobile();
+    }
+
+    /**
      * Action: Focus on node in map
      */
     focusOnNode() {
@@ -457,6 +519,9 @@ class InfoPanel {
 
         window.networkRenderer.focusOnNodes([this.currentNode]);
         this.showToast('Focalizando no mapa 3D');
+
+        // Close panel on mobile after action
+        this.closePanelOnMobile();
     }
 
     /**
@@ -567,6 +632,17 @@ class InfoPanel {
     refresh() {
         if (this.isVisible && this.currentNode) {
             this.showNodeDetails(this.currentNode);
+        }
+    }
+
+    /**
+     * Close panel on mobile after action
+     */
+    closePanelOnMobile() {
+        if (window.innerWidth <= 900) {
+            setTimeout(() => {
+                this.hide();
+            }, 1000); // Wait 1 second to let user see the action result
         }
     }
 

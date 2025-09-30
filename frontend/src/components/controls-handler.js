@@ -158,6 +158,7 @@ class ControlsHandler {
 
         this.elements.reloadData?.addEventListener('click', () => {
             this.reloadNetworkData();
+            this.closeMobileMenu();
         });
 
         // Keyboard shortcuts
@@ -713,6 +714,30 @@ class ControlsHandler {
             }
 
             alert('Error reloading data. Please try again.');
+        }
+    }
+
+    /**
+     * Close mobile menu if open
+     */
+    closeMobileMenu() {
+        if (window.innerWidth <= 900) {
+            const controlsPanel = document.querySelector('.controls-panel');
+            const controlsToggle = document.getElementById('mobile-controls-toggle');
+
+            if (controlsPanel && controlsPanel.classList.contains('open')) {
+                controlsPanel.classList.remove('open');
+                if (controlsToggle) {
+                    controlsToggle.textContent = '☰';
+                    controlsToggle.style.position = 'fixed';
+                    controlsToggle.style.top = '70px';
+                    controlsToggle.style.left = '10px';
+                    controlsToggle.style.zIndex = '1002';
+                    controlsToggle.style.fontSize = '';
+                    controlsToggle.style.width = '';
+                    controlsToggle.style.height = '';
+                }
+            }
         }
     }
 

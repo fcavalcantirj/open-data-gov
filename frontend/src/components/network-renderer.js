@@ -575,7 +575,7 @@ class NetworkRenderer {
      */
     resetCamera() {
         this.graph.cameraPosition(
-            { x: 0, y: 0, z: 300 },
+            { x: 0, y: 0, z: 1500 }, // Much farther back to see all nodes
             { x: 0, y: 0, z: 0 },
             1000
         );
@@ -711,11 +711,13 @@ class NetworkRenderer {
         // Trigger callbacks for info panel
         this.eventCallbacks.nodeClick.forEach(callback => callback(node));
 
+        // Directly call info panel
+        if (window.infoPanel) {
+            window.infoPanel.showNodeDetails(node);
+        }
+
         // Zoom to node with smooth animation
         this.zoomToNode(node);
-
-        // Show modal popup like hashnect
-        this.showNodeModal(node);
     }
 
     /**
@@ -802,7 +804,7 @@ class NetworkRenderer {
             }, 0);
 
             // Set camera at appropriate distance to see whole network
-            const optimalDistance = Math.max(maxDistance * 2.5, 400);
+            const optimalDistance = Math.max(maxDistance * 4, 1200); // Much farther back
 
             // Position camera to look at center
             this.graph.cameraPosition(
@@ -1053,8 +1055,8 @@ class NetworkRenderer {
 
         try {
             // Adjust forces based on zoom level
-            const chargeStrength = -300 - (this.zoomLevel * 200); // Stronger repulsion at higher zoom
-            const linkDistance = 100 + (this.zoomLevel * 50); // Longer links at higher zoom
+            const chargeStrength = -120 - (this.zoomLevel * 80); // Reduced repulsion for tighter clusters
+            const linkDistance = 40 + (this.zoomLevel * 20); // Shorter links for closer nodes
 
             // Check if d3 force simulation is available
             if (this.graph.d3Force) {

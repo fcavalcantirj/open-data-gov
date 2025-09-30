@@ -21,9 +21,10 @@ body {
     grid-template-areas:
         "header header header"
         "controls graph info";
-    grid-template-columns: 300px 1fr 350px;
+    grid-template-columns: 20vw 1fr 25vw;
     grid-template-rows: 60px 1fr;
     gap: 0;
+    overflow: hidden;
 }
 
 /* Header */
@@ -252,6 +253,23 @@ body {
 
     .app-header h1 {
         font-size: 1rem;
+    }
+}
+
+/* Desktop - make info panel an overlay */
+@media (min-width: 901px) {
+    .info-panel {
+        position: fixed !important;
+        top: 60px !important;
+        right: 0 !important;
+        width: 350px !important;
+        height: calc(100vh - 60px) !important;
+        z-index: 1000 !important;
+        display: none !important;
+    }
+
+    .info-panel.open {
+        display: flex !important;
     }
 }
 

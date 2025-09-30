@@ -21,6 +21,10 @@
     flex-shrink: 0;
 }
 
+.control-section:first-child {
+    padding-top: 15px;
+}
+
 .control-section:last-child {
     border-bottom: none;
 }

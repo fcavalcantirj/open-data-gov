@@ -164,7 +164,33 @@ class PoliticalNetwork3DApp {
         if (controlsToggle && controlsPanel) {
             controlsToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
-                controlsPanel.classList.toggle('open');
+                const isOpen = controlsPanel.classList.contains('open');
+
+                if (isOpen) {
+                    // Close menu
+                    controlsPanel.classList.remove('open');
+                    controlsToggle.textContent = '☰';
+                    controlsToggle.style.position = 'fixed';
+                    controlsToggle.style.top = '70px';
+                    controlsToggle.style.left = '10px';
+                    controlsToggle.style.zIndex = '1002';
+                    controlsToggle.style.fontSize = '';
+                    controlsToggle.style.width = '';
+                    controlsToggle.style.height = '';
+                } else {
+                    // Open menu
+                    controlsPanel.classList.add('open');
+                    controlsToggle.textContent = '✕';
+                    controlsToggle.style.position = 'fixed';
+                    controlsToggle.style.top = '70px';
+                    controlsToggle.style.right = '20px';
+                    controlsToggle.style.left = 'auto';
+                    controlsToggle.style.zIndex = '1003';
+                    controlsToggle.style.fontSize = '18px';
+                    controlsToggle.style.width = '40px';
+                    controlsToggle.style.height = '40px';
+                }
+
                 // Close info panel if open
                 if (infoPanel && infoPanel.classList.contains('open')) {
                     infoPanel.classList.remove('open');
